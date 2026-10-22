@@ -1,0 +1,125 @@
+# GLOOP -- a test creature made from photos (rendered stand-ins for now:
+# tools/makeclay.py). 14 shots plus one of the empty backdrop.
+
+name GLOOP
+art photo right         # the photos show Gloop facing right
+height 84               # the first stand photo is scaled to 84 pixels tall
+backdrop photos/backdrop.png
+speed 1.4 1.1 7.5
+width 40
+
+anim stand wander       # sways between the two stand shots
+  photos/stand1.png 10
+  photos/stand2.png 10
+end
+
+anim walkf
+  photos/walk1.png 6
+  photos/walk2.png 6
+  photos/walk3.png 6
+  photos/walk4.png 6
+end
+
+anim walkb
+  photos/walk4.png 7
+  photos/walk3.png 7
+  photos/walk2.png 7
+  photos/walk1.png 7
+end
+
+anim crouch hold
+  photos/crouch.png 4
+end
+
+anim jump hold
+  photos/crouch.png 4
+  photos/walk1.png 4
+end
+
+anim land
+  photos/crouch.png 6
+end
+
+anim block hold
+  photos/punch1.png 4
+end
+
+anim crouchblock hold
+  photos/crouch.png 4
+end
+
+anim hit
+  photos/hit.png 14
+end
+
+anim crouchhit
+  photos/hit.png 10
+  photos/crouch.png 4
+end
+
+anim fall
+  photos/hit.png 8
+  photos/down.png 30
+end
+
+anim down
+  photos/down.png 40
+end
+
+anim getup
+  photos/crouch.png 10
+  photos/stand1.png 6
+end
+
+anim win loop
+  photos/win.png 30
+  photos/stand2.png 8
+end
+
+anim jab
+  photos/punch1.png 4
+  photos/punch2.png 8
+  photos/punch1.png 4
+end
+
+anim haymaker
+  photos/punch1.png 8
+  photos/punch2.png 14
+  photos/stand2.png 6
+end
+
+anim kick
+  photos/walk2.png 4
+  photos/kick.png 10
+  photos/stand1.png 4
+end
+
+anim chomp
+  photos/walk1.png 5
+  photos/bite.png 12
+  photos/stand2.png 6
+end
+
+anim lowjab
+  photos/crouch.png 4
+  photos/punch2.png 8
+  photos/crouch.png 4
+end
+
+anim flykick
+  photos/kick.png 30
+end
+
+# no boxes: each move hits with whatever sticks out furthest in its photos
+move stand.hq jab damage 6 stun 16 strength 1 level high
+end
+move stand.hf haymaker damage 11 stun 20 strength 2 level high
+end
+move stand.lq kick damage 7 stun 16 strength 1 level low
+end
+move stand.lf chomp damage 11 stun 20 strength 3 level high knockdown
+end
+move crouch.hq lowjab damage 5 stun 16 strength 1 level low
+end
+move jump.hq flykick damage 9 stun 20 strength 2 level high
+end

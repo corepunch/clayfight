@@ -1,0 +1,13 @@
+# Primal Rage game data and anything derived from it: your own copy, never committed
+primalrage/
+creatures/primalrage/
+
+# build output
+build/
+clayfight
+*.bmp
+
+# local clutter
+.DS_Store
+__pycache__/
+.claude/settings.local.json
