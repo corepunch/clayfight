@@ -22,8 +22,6 @@
 #include <string.h>
 #include <strings.h>
 
-#include <SDL.h>
-
 #include "game/game.h"
 
 #define MAXTICS 8 // never simulate more than this per frame
@@ -134,7 +132,7 @@ static void D_DoomLoop(void)
             D_RunTic();
         D_Display(); // presents with vsync, which paces the loop
         if (now == I_GetTime())
-            SDL_Delay(1);
+            I_Sleep(1);
     }
 }
 
@@ -144,8 +142,6 @@ int main(int argc, char **argv)
     myargv = argv;
     shotprefix = M_ParmValue("-shots", NULL);
     bool headless = shotprefix || M_CheckParm("-checkanims");
-    if (headless)
-        SDL_setenv("SDL_VIDEODRIVER", "dummy", 1);
     if (shotprefix) {
         shotevery = atoi(M_ParmValue("-every", "60"));
         maxtics = atoi(M_ParmValue("-tics", "600"));
@@ -162,7 +158,7 @@ int main(int argc, char **argv)
         if (!X_Init(exepath) || !PS_Init())
             I_Error("-checkanims needs Primal Rage's PRAGE.EXE in the data directory");
         int failed = P_CheckAnims();
-        SDL_Quit();
+        I_Shutdown();
         return failed ? 1 : 0;
     }
     if (M_CheckParm("-script")) {
@@ -197,8 +193,6 @@ int main(int argc, char **argv)
     else
         D_DoomLoop();
 
-    I_ShutdownSound();
-    I_ShutdownGraphics();
-    SDL_Quit();
+    I_Shutdown();
     return 0;
 }

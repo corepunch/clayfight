@@ -412,7 +412,17 @@ bool P_BoxesTouch(const box_t *a, const box_t *b);
 void P_SeparateFighters(fighter_t *a, fighter_t *b);
 
 // p_inter.c
-bool P_CheckAttack(fighter_t *att, fighter_t *vic);
+// What one attack landing on one victim this tic amounts to. Looked up for
+// both fighters first, then applied, so trades are symmetric.
+typedef struct {
+    const attackinfo_t *atk;
+    int stun; // the move's stun, for the victim's reaction length
+    bool blocked;
+    bool crouch; // the victim takes it crouching
+    float x, z; // impact point, for sparks and sound
+} hit_t;
+bool P_AttackLands(const fighter_t *att, const fighter_t *vic, hit_t *out);
+void P_ApplyHit(fighter_t *att, fighter_t *vic, const hit_t *h);
 
 // p_enemy.c
 void P_CpuCmd(fighter_t *f, const fighter_t *opp, ticcmd_t *cmd);

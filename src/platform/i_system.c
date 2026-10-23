@@ -17,6 +17,18 @@ int I_GetTime(void)
     return (int)((now - base) * TICRATE / SDL_GetPerformanceFrequency());
 }
 
+void I_Sleep(int ms)
+{
+    SDL_Delay(ms);
+}
+
+void I_Shutdown(void)
+{
+    I_ShutdownSound();
+    I_ShutdownGraphics();
+    SDL_Quit();
+}
+
 void I_Error(const char *fmt, ...)
 {
     char msg[512];

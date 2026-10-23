@@ -142,7 +142,7 @@ static void N_Breathe(psanim_t *a)
 {
     int *v52 = &a->vars[0], *v58 = &a->vars[5];
     if (--a->breathtimer < 0) {
-        *v58 = M_Random() & 1 ? 1 : -1;
+        *v58 = P_Random() & 1 ? 1 : -1;
         a->breathtimer = a->cyclelen / 3 * 3;
     }
     *v52 += *v58;
@@ -327,7 +327,7 @@ static runresult_t Run(psanim_t *a)
         }
         case 0x07: // DELAY: hold the current frame longer
         case 0x08: // RANDOM_DELAY
-            a->timer += opc == 0x07 ? value : M_Random() % (MAX(value, 0) + 1);
+            a->timer += opc == 0x07 ? value : P_Random() % (MAX(value, 0) + 1);
             if (a->timer > PS_EPSILON) {
                 a->ip = next;
                 return RUN_PAUSED;

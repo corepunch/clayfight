@@ -6,6 +6,7 @@
 // in game code, so palettes are guessed (W_GuessPalette) and cached.
 
 #include <stdlib.h>
+#include <strings.h>
 
 #include "game/game.h"
 
@@ -13,7 +14,7 @@
 #define LAUNCH_DELAY 50
 
 static gra_t *selgra;
-static int cursor[2] = {4, 4}; // start on Sauron
+static int cursor[2]; // both start on Sauron (set in SEL_Start)
 static bool chosen[2];
 static bool joined[2] = {true, false}; // the right player joins by pressing a button
 static int seltime, launch;
@@ -25,6 +26,9 @@ void SEL_Start(void)
         selgra = W_LoadGra("S04SELMO.GRA");
         for (int i = 0; i < 512; i++)
             palcache[i] = -1;
+        for (int i = 0; i < numroster; i++) // the arcade's default pick
+            if (!strcasecmp(roster[i]->name, "SAURON"))
+                cursor[0] = cursor[1] = i;
     }
     chosen[0] = chosen[1] = false;
     seltime = launch = 0;

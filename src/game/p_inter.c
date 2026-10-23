@@ -27,11 +27,11 @@ static void P_KnockDown(fighter_t *vic, const fighter_t *att, float up)
     vic->stun = 0;
 }
 
-static void P_DamageFighter(fighter_t *vic, const fighter_t *att, const attackinfo_t *atk)
+static void P_DamageFighter(fighter_t *vic, const fighter_t *att, const attackinfo_t *atk, const hit_t *h)
 {
     vic->health = MAX(0, vic->health - atk->damage);
     vic->flash = 4;
-    level.hitstop = HITSTOP;
+    level.hitstop = HITSTOP; // on a trade both sides share one freeze
     S_StartSound(atk->damage >= 10 ? sfx_hithard : sfx_hit, vic->x, 0.9f);
 
     if (vic->health == 0) {
@@ -45,43 +45,52 @@ static void P_DamageFighter(fighter_t *vic, const fighter_t *att, const attackin
         P_KnockDown(vic, att, 3);
         return;
     }
-    bool crouch = (vic->cmd.buttons & BT_DOWN) && vic->state->kind == K_FREE;
     // the reaction's length follows the hit's stun
-    vic->linkstun = p_scripted ? att->smove.stun : att->move >= 0 ? att->def->moves[att->move].stun : 0;
-    if (!(crouch && P_SetAnim(vic, ANIM_CROUCHHIT)))
+    vic->linkstun = h->stun;
+    if (!(h->crouch && P_SetAnim(vic, ANIM_CROUCHHIT)))
         P_SetAnim(vic, ANIM_HIT);
     vic->stun = HITSTUN;
     vic->momx = att->facing * atk->push;
 }
 
-// Called every tic for the attacker. Returns true if something connected.
-bool P_CheckAttack(fighter_t *att, fighter_t *vic)
+// Hits are resolved in two steps so that a trade (both attacks landing on
+// the same tic) is symmetric: P_AttackLands only looks, for both fighters,
+// and P_ApplyHit then changes them. Everything the second step needs is
+// captured in hit_t, because applying the first hit puts its victim into a
+// reaction, which clears the attack that victim was making.
+bool P_AttackLands(const fighter_t *att, const fighter_t *vic, hit_t *out)
 {
     box_t hit, hurt;
     if (att->attackhit || vic->dead || vic->state->kind == K_DOWN)
         return false;
     if (!P_AttackBox(att, &hit) || !P_HurtBox(vic, &hurt) || !P_BoxesTouch(&hit, &hurt))
         return false;
+    out->atk = att->attack;
+    out->stun = p_scripted ? att->smove.stun : att->move >= 0 ? att->def->moves[att->move].stun : 0;
+    out->blocked = P_CanBlock(vic, out->atk);
+    out->crouch = (vic->cmd.buttons & BT_DOWN) && (out->blocked || vic->state->kind == K_FREE);
+    out->x = att->facing > 0 ? MAX(hit.x0, hurt.x0) : MIN(hit.x1, hurt.x1);
+    out->z = (MAX(hit.z0, hurt.z0) + MIN(hit.z1, hurt.z1)) / 2;
+    return true;
+}
 
+void P_ApplyHit(fighter_t *att, fighter_t *vic, const hit_t *h)
+{
+    const attackinfo_t *atk = h->atk;
     att->attackhit = true;
-    const attackinfo_t *atk = att->attack;
-    float sx = att->facing > 0 ? MAX(hit.x0, hurt.x0) : MIN(hit.x1, hurt.x1);
-    float sz = (MAX(hit.z0, hurt.z0) + MIN(hit.z1, hurt.z1)) / 2;
 
-    if (P_CanBlock(vic, atk)) {
-        bool crouch = vic->cmd.buttons & BT_DOWN;
-        if (!(crouch && P_SetAnim(vic, ANIM_CROUCHBLOCK)))
+    if (h->blocked) {
+        if (!(h->crouch && P_SetAnim(vic, ANIM_CROUCHBLOCK)))
             P_SetAnim(vic, ANIM_BLOCK);
         vic->stun = BLOCKSTUN;
         vic->momx = att->facing * atk->push * 0.8f;
         vic->health = MAX(1, vic->health - atk->damage / 6); // chip damage
-        level.hitstop = 3;
-        P_SpawnSpark(sx, sz, SPARK_BLOCK);
-        S_StartSound(sfx_block, sx, 0.8f);
-        return true;
+        level.hitstop = MAX(level.hitstop, 3);
+        P_SpawnSpark(h->x, h->z, SPARK_BLOCK);
+        S_StartSound(sfx_block, h->x, 0.8f);
+        return;
     }
 
-    P_DamageFighter(vic, att, atk);
-    P_SpawnSpark(sx, sz, atk->damage >= 10 ? SPARK_BIG : SPARK_HIT);
-    return true;
+    P_DamageFighter(vic, att, atk, h);
+    P_SpawnSpark(h->x, h->z, atk->damage >= 10 ? SPARK_BIG : SPARK_HIT);
 }

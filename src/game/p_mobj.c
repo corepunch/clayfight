@@ -132,7 +132,7 @@ static int P_Wander(fighter_t *f, const animinfo_t *a)
 {
     int n = a->count - a->wanderfrom;
     if (--f->wandertimer < 0) {
-        f->wanderdir = M_Random() & 1 ? 1 : -1;
+        f->wanderdir = P_Random() & 1 ? 1 : -1; // the frame drives the hurt box: simulation RNG
         f->wandertimer = n / 3 * 3;
     }
     int i = f->state->step - a->wanderfrom + f->wanderdir;

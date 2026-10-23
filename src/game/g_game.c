@@ -1,7 +1,5 @@
 // g_game.c -- game flow, input bindings and ticcmds (cf. g_game.c)
 
-#include <SDL_scancode.h>
-
 #include "game/game.h"
 
 gamestate_t gamestate = GS_TITLE;
@@ -13,17 +11,14 @@ static const struct {
     int key, player, bit;
 } bindings[] = {
     // left player: WASD to move, R T (high) / F G (low) to attack
-    {SDL_SCANCODE_W, 0, BT_UP}, {SDL_SCANCODE_S, 0, BT_DOWN},
-    {SDL_SCANCODE_A, 0, BT_LEFT}, {SDL_SCANCODE_D, 0, BT_RIGHT},
-    {SDL_SCANCODE_R, 0, BT_HQ}, {SDL_SCANCODE_T, 0, BT_HF},
-    {SDL_SCANCODE_F, 0, BT_LQ}, {SDL_SCANCODE_G, 0, BT_LF},
-    {SDL_SCANCODE_RETURN, 0, BT_START}, {SDL_SCANCODE_SPACE, 0, BT_START},
+    {'w', 0, BT_UP}, {'s', 0, BT_DOWN}, {'a', 0, BT_LEFT}, {'d', 0, BT_RIGHT},
+    {'r', 0, BT_HQ}, {'t', 0, BT_HF}, {'f', 0, BT_LQ}, {'g', 0, BT_LF},
+    {KEY_ENTER, 0, BT_START}, {KEY_SPACE, 0, BT_START},
     // right player: arrows to move, O P (high) / L ; (low) to attack
-    {SDL_SCANCODE_UP, 1, BT_UP}, {SDL_SCANCODE_DOWN, 1, BT_DOWN},
-    {SDL_SCANCODE_LEFT, 1, BT_LEFT}, {SDL_SCANCODE_RIGHT, 1, BT_RIGHT},
-    {SDL_SCANCODE_O, 1, BT_HQ}, {SDL_SCANCODE_P, 1, BT_HF},
-    {SDL_SCANCODE_L, 1, BT_LQ}, {SDL_SCANCODE_SEMICOLON, 1, BT_LF},
-    {SDL_SCANCODE_BACKSLASH, 1, BT_START},
+    {KEY_UPARROW, 1, BT_UP}, {KEY_DOWNARROW, 1, BT_DOWN},
+    {KEY_LEFTARROW, 1, BT_LEFT}, {KEY_RIGHTARROW, 1, BT_RIGHT},
+    {'o', 1, BT_HQ}, {'p', 1, BT_HF}, {'l', 1, BT_LQ}, {';', 1, BT_LF},
+    {'\\', 1, BT_START},
 };
 
 static const int padbits[] = {
@@ -56,11 +51,11 @@ bool G_Binding(int key, int *player, int *bit)
 bool G_Responder(const event_t *ev)
 {
     if (ev->type == ev_keydown && gamestate == GS_FIGHT) {
-        if (ev->key == SDL_SCANCODE_GRAVE) { // debug: show hit boxes
+        if (ev->key == '`') { // debug: show hit boxes
             r_showboxes = !r_showboxes;
             return true;
         }
-        if (ev->key == SDL_SCANCODE_ESCAPE || ev->key == PADKEY(0, PK_BACK)) {
+        if (ev->key == KEY_ESCAPE || ev->key == PADKEY(0, PK_BACK)) {
             paused = !paused;
             return true;
         }

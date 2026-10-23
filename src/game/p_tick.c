@@ -53,9 +53,13 @@ void P_Ticker(void)
     P_FighterThinker(a);
     P_FighterThinker(b);
     P_SeparateFighters(a, b);
-    if (controlled) {
-        P_CheckAttack(a, b);
-        P_CheckAttack(b, a);
+    if (controlled) { // look first, then apply: a trade hits both ways
+        hit_t ab, ba;
+        bool hitb = P_AttackLands(a, b, &ab), hita = P_AttackLands(b, a, &ba);
+        if (hitb)
+            P_ApplyHit(a, b, &ab);
+        if (hita)
+            P_ApplyHit(b, a, &ba);
     }
     P_RunParticles();
     P_MoveCamera(a, b);

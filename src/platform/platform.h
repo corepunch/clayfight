@@ -26,6 +26,8 @@ typedef uint32_t pixel_t; // 0xAARRGGBB
 
 // --- i_system.c: timing, memory and errors (cf. i_system.h) ----------------
 int I_GetTime(void); // tics since startup
+void I_Sleep(int ms);
+void I_Shutdown(void); // close sound, graphics and SDL
 void I_Error(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
 void I_Log(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 void *I_Malloc(size_t size); // zeroed, never returns NULL
@@ -56,8 +58,20 @@ typedef enum {
     ev_keyup,
 } evtype_t;
 
-// Keyboard events carry an SDL_Scancode. Game controllers are mapped onto
-// virtual keys above KEY_PAD so bindings treat both the same way.
+// Keyboard events carry a key from this table (cf. doomkeys.h): keys are
+// physical positions, named after the QWERTY key there, so WASD stays WASD
+// on any layout. Printable keys are their lowercase ASCII. i_video.c
+// translates from SDL. Game controllers are mapped onto virtual keys above
+// KEY_PAD so bindings treat both the same way.
+enum {
+    KEY_ENTER = 13,
+    KEY_ESCAPE = 27,
+    KEY_SPACE = ' ',
+    KEY_UPARROW = 0x100,
+    KEY_DOWNARROW,
+    KEY_LEFTARROW,
+    KEY_RIGHTARROW,
+};
 #define KEY_PAD 1000
 #define PADKEY(pad, k) (KEY_PAD + (pad) * 16 + (k))
 enum { PK_UP, PK_DOWN, PK_LEFT, PK_RIGHT, PK_B0, PK_B1, PK_B2, PK_B3, PK_START, PK_BACK };

@@ -17,6 +17,8 @@ static bool padstate[MAXPADS][16];
 void I_InitGraphics(bool nowindow)
 {
     headless = nowindow;
+    if (headless)
+        SDL_setenv("SDL_VIDEODRIVER", "dummy", 1);
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) < 0)
         I_Error("SDL_Init: %s", SDL_GetError());
     if (headless)
@@ -65,6 +67,37 @@ static void post(evtype_t type, int key)
 {
     event_t ev = {type, key};
     D_PostEvent(&ev);
+}
+
+// SDL scancode (a physical key) -> the game's key; 0 for keys it has no name for.
+static int I_TranslateKey(SDL_Scancode sc)
+{
+    if (sc >= SDL_SCANCODE_A && sc <= SDL_SCANCODE_Z)
+        return 'a' + (sc - SDL_SCANCODE_A);
+    if (sc >= SDL_SCANCODE_1 && sc <= SDL_SCANCODE_9)
+        return '1' + (sc - SDL_SCANCODE_1);
+    switch (sc) {
+    case SDL_SCANCODE_0: return '0';
+    case SDL_SCANCODE_RETURN: return KEY_ENTER;
+    case SDL_SCANCODE_ESCAPE: return KEY_ESCAPE;
+    case SDL_SCANCODE_SPACE: return KEY_SPACE;
+    case SDL_SCANCODE_UP: return KEY_UPARROW;
+    case SDL_SCANCODE_DOWN: return KEY_DOWNARROW;
+    case SDL_SCANCODE_LEFT: return KEY_LEFTARROW;
+    case SDL_SCANCODE_RIGHT: return KEY_RIGHTARROW;
+    case SDL_SCANCODE_MINUS: return '-';
+    case SDL_SCANCODE_EQUALS: return '=';
+    case SDL_SCANCODE_LEFTBRACKET: return '[';
+    case SDL_SCANCODE_RIGHTBRACKET: return ']';
+    case SDL_SCANCODE_BACKSLASH: return '\\';
+    case SDL_SCANCODE_SEMICOLON: return ';';
+    case SDL_SCANCODE_APOSTROPHE: return '\'';
+    case SDL_SCANCODE_GRAVE: return '`';
+    case SDL_SCANCODE_COMMA: return ',';
+    case SDL_SCANCODE_PERIOD: return '.';
+    case SDL_SCANCODE_SLASH: return '/';
+    default: return 0;
+    }
 }
 
 // Game controllers: turn button/axis state into edge-triggered virtual keys.
@@ -117,12 +150,12 @@ void I_StartTic(void)
             quit = true;
             break;
         case SDL_KEYDOWN:
-            if (!e.key.repeat)
-                post(ev_keydown, e.key.keysym.scancode);
+        case SDL_KEYUP: {
+            int key = I_TranslateKey(e.key.keysym.scancode);
+            if (key && !e.key.repeat)
+                post(e.type == SDL_KEYDOWN ? ev_keydown : ev_keyup, key);
             break;
-        case SDL_KEYUP:
-            post(ev_keyup, e.key.keysym.scancode);
-            break;
+        }
         case SDL_CONTROLLERDEVICEADDED:
             I_OpenPad(e.cdevice.which);
             break;
