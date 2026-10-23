@@ -408,6 +408,38 @@ typedef struct {
     byte *on; // figure pixels
 } sprite_t;
 
+// Resample the segmented source, retaining colour only from figure pixels.
+static void W_ResamplePhoto(const photo_t *ph, float scale, sprite_t *s)
+{
+    s->rgb = I_Malloc((size_t)s->w * s->h * 3 * sizeof(float));
+    s->on = I_Malloc((size_t)s->w * s->h);
+    for (int y = 0; y < s->h; y++) {
+        for (int x = 0; x < s->w; x++) {
+            int sx0 = ph->x0 + (int)(x / scale), sx1 = ph->x0 + (int)((x + 1) / scale);
+            int sy0 = ph->y0 + (int)(y / scale), sy1 = ph->y0 + (int)((y + 1) / scale);
+            sx1 = MAX(sx1, sx0 + 1);
+            sy1 = MAX(sy1, sy0 + 1);
+            int in = 0, all = 0;
+            float acc[3] = {0};
+            for (int yy = sy0; yy < sy1 && yy < ph->img.h; yy++) {
+                for (int xx = sx0; xx < sx1 && xx < ph->img.w; xx++) {
+                    all++;
+                    if (!ph->mask[yy * ph->img.w + xx])
+                        continue;
+                    in++;
+                    for (int c = 0; c < 3; c++)
+                        acc[c] += ph->img.rgb[((size_t)yy * ph->img.w + xx) * 3 + c];
+                }
+            }
+            size_t o = (size_t)y * s->w + x;
+            s->on[o] = all && in * 2 >= all;
+            if (in)
+                for (int c = 0; c < 3; c++)
+                    s->rgb[o * 3 + c] = acc[c] / in;
+        }
+    }
+}
+
 void W_PhotoFinish(photoset_t *ps, const char *backdroppath, int reference, int height)
 {
     image_t backdrop = {0};
@@ -429,34 +461,9 @@ void W_PhotoFinish(photoset_t *ps, const char *backdroppath, int reference, int 
         sprite_t *s = &spr[i];
         s->w = MAX(1, (int)ceilf((ph->x1 - ph->x0 + 1) * scale));
         s->h = MAX(1, (int)ceilf((ph->y1 - ph->y0 + 1) * scale));
-        s->rgb = I_Malloc((size_t)s->w * s->h * 3 * sizeof(float));
-        s->on = I_Malloc((size_t)s->w * s->h);
-        for (int y = 0; y < s->h; y++) {
-            for (int x = 0; x < s->w; x++) {
-                int sx0 = ph->x0 + (int)(x / scale), sx1 = ph->x0 + (int)((x + 1) / scale);
-                int sy0 = ph->y0 + (int)(y / scale), sy1 = ph->y0 + (int)((y + 1) / scale);
-                sx1 = MAX(sx1, sx0 + 1);
-                sy1 = MAX(sy1, sy0 + 1);
-                int in = 0, all = 0;
-                float acc[3] = {0};
-                for (int yy = sy0; yy < sy1 && yy < ph->img.h; yy++) {
-                    for (int xx = sx0; xx < sx1 && xx < ph->img.w; xx++) {
-                        all++;
-                        if (!ph->mask[yy * ph->img.w + xx])
-                            continue;
-                        in++;
-                        for (int c = 0; c < 3; c++)
-                            acc[c] += ph->img.rgb[((size_t)yy * ph->img.w + xx) * 3 + c];
-                    }
-                }
-                size_t o = (size_t)y * s->w + x;
-                s->on[o] = all && in * 2 >= all;
-                if (in)
-                    for (int c = 0; c < 3; c++)
-                        s->rgb[o * 3 + c] = acc[c] / in;
-                total += s->on[o];
-            }
-        }
+        W_ResamplePhoto(ph, scale, s);
+        for (int p = 0; p < s->w * s->h; p++)
+            total += s->on[p];
     }
 
     // one palette for the whole creature, plus colour-swapped alternates
@@ -515,6 +522,18 @@ void W_PhotoFinish(photoset_t *ps, const char *backdroppath, int reference, int 
         pt->by0 = -pt->y;
         pt->bx1 = s->w - 1 - pt->x;
         pt->by1 = s->h - 1 - pt->y;
+        // Sample again from the photograph at framebuffer density. Keep the
+        // original patch for simulation silhouettes and reuse its palette and
+        // hotspot so rendering cannot change reach, collisions or alignment.
+        sprite_t detail = {.w = pt->w * PIXELS_PER_UNIT, .h = pt->h * PIXELS_PER_UNIT};
+        W_ResamplePhoto(&ps->photos[i], scale * PIXELS_PER_UNIT, &detail);
+        pt->detail = I_Malloc((size_t)detail.w * detail.h);
+        for (int k = 0; k < detail.w * detail.h; k++)
+            if (detail.on[k])
+                pt->detail[k] = (byte)(1 + W_Nearest(colors, NUMCOLORS,
+                    (int)detail.rgb[k * 3], (int)detail.rgb[k * 3 + 1], (int)detail.rgb[k * 3 + 2]));
+        free(detail.rgb);
+        free(detail.on);
         g->frames[i] = (frame_t){.w = s->w, .h = s->h, .x = pt->x, .y = pt->y, .decoded = true, .patch = pt};
         free(s->rgb);
         free(s->on);

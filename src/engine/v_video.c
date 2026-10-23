@@ -16,6 +16,10 @@ void V_Clear(pixel_t color)
 
 void V_FillRect(int x, int y, int w, int h, pixel_t color)
 {
+    x *= PIXELS_PER_UNIT;
+    y *= PIXELS_PER_UNIT;
+    w *= PIXELS_PER_UNIT;
+    h *= PIXELS_PER_UNIT;
     int x0 = MAX(0, x), y0 = MAX(0, y);
     int x1 = MIN(SCREENWIDTH, x + w), y1 = MIN(SCREENHEIGHT, y + h);
     for (int yy = y0; yy < y1; yy++)
@@ -36,7 +40,7 @@ pixel_t V_Lerp(pixel_t a, pixel_t b, float t)
 void V_VGradient(int y, int h, pixel_t top, pixel_t bottom)
 {
     for (int i = 0; i < h; i++)
-        V_FillRect(0, y + i, SCREENWIDTH, 1, V_Lerp(top, bottom, h > 1 ? (float)i / (h - 1) : 0));
+        V_FillRect(0, y + i, VIEWWIDTH, 1, V_Lerp(top, bottom, h > 1 ? (float)i / (h - 1) : 0));
 }
 
 static pixel_t blend(pixel_t dst, pixel_t src)
@@ -46,21 +50,30 @@ static pixel_t blend(pixel_t dst, pixel_t src)
 
 void V_DrawPatchScaled(int x, int y, const patch_t *p, const palette_t *pal, int flags, float sx, float sy)
 {
-    if (!p)
+    if (!p || sx <= 0 || sy <= 0)
         return;
+    x *= PIXELS_PER_UNIT;
+    y *= PIXELS_PER_UNIT;
+    sx *= PIXELS_PER_UNIT;
+    sy *= PIXELS_PER_UNIT;
+    int density = p->detail ? PIXELS_PER_UNIT : 1;
+    const byte *pixels = p->detail ? p->detail : p->pixels;
+    int sw = p->w * density, sh = p->h * density;
     int dw = (int)lroundf(p->w * sx), dh = (int)lroundf(p->h * sy);
     bool flip = flags & V_FLIP;
     int left = (int)lroundf(flip ? x + p->x * sx - dw : x - p->x * sx);
     int top = (int)lroundf(y - p->y * sy);
     int cx0 = MAX(0, -left), cx1 = MIN(dw, SCREENWIDTH - left);
     int cy0 = MAX(0, -top), cy1 = MIN(dh, SCREENHEIGHT - top);
+    if (cx0 >= cx1 || cy0 >= cy1)
+        return;
     for (int dy = cy0; dy < cy1; dy++) {
-        const byte *srow = p->pixels + MIN(p->h - 1, (int)(dy / sy)) * p->w;
+        const byte *srow = pixels + MIN(sh - 1, (int)(dy * density / sy)) * sw;
         pixel_t *d = screen + (top + dy) * SCREENWIDTH + left + cx0;
         for (int dx = cx0; dx < cx1; dx++, d++) {
-            int px = MIN(p->w - 1, (int)(dx / sx));
+            int px = MIN(sw - 1, (int)(dx * density / sx));
             if (flip)
-                px = p->w - 1 - px;
+                px = sw - 1 - px;
             int v = srow[px];
             if (!v)
                 continue;

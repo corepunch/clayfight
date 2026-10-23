@@ -24,8 +24,15 @@ creatures: creatures/primalrage/sauron.txt
 creatures/primalrage/sauron.txt: primalrage/PRAGE.EXE tools/pr2creature.py tools/extract_scripts.py
 	python3 -I tools/pr2creature.py primalrage creatures/primalrage
 
-check: all
+check: all checkvideo
 	./clayfight -checkanims
+
+checkvideo: build/checkvideo
+	./build/checkvideo
+
+build/checkvideo: tests/video.c src/engine/v_video.c $(HDRS)
+	@mkdir -p build
+	$(CC) $(CFLAGS) -o $@ tests/video.c src/engine/v_video.c -lm
 
 build/%.o: src/%.c $(HDRS)
 	@mkdir -p $(dir $@)
@@ -34,4 +41,4 @@ build/%.o: src/%.c $(HDRS)
 clean:
 	rm -rf build clayfight
 
-.PHONY: all clean creatures check
+.PHONY: all clean creatures check checkvideo

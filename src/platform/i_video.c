@@ -25,7 +25,7 @@ void I_InitGraphics(bool nowindow)
         return;
 
     window = SDL_CreateWindow("Clayfight", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                              SCREENWIDTH * 3, SCREENHEIGHT * 3,
+                              SCREENWIDTH, SCREENHEIGHT,
                               SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
     if (!window)
         I_Error("SDL_CreateWindow: %s", SDL_GetError());

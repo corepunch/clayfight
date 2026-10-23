@@ -21,6 +21,20 @@ starts, Esc pauses, the backtick key shows hit boxes. Game controllers work too.
 Press a right-player button on the select screen to join; otherwise you fight
 the CPU.
 
+This branch renders at **640×480**, with square pixels and nearest-neighbor
+presentation. Drawing and simulation use a 320×240 coordinate space; legacy
+DOS sprites, scenery and fonts enlarge 2×. Photo creatures retain a separate
+640×480-density image sampled from their source photos, with the same 31-colour
+palette, hotspot and simulation silhouette. Their extra detail is real source
+detail rather than enlarged low-resolution pixels.
+
+The four saved clay action sheets are playable prototypes: `BOXER`, `LIZARD`,
+`CYCLOPS`, and `CRAB`. Try `./clayfight -fight boxer lizard`. Their stand pose is
+184 screen pixels tall; punch, kick, block and pain poses come from the concept
+sheets. Walking and other missing reactions use fallback poses, so this is a
+resolution and art experiment, not a finished animation set. Rebuild the sliced
+photos and creature files with `python3 tools/import_concepts.py` (needs Pillow).
+
 Developer switches (Doom style): `-data <dir>`, `-creatures <dir>`,
 `-fight sauron sauron [-cpu] [-stage n]`, `-warp select`, `-script`, `-boxes`,
 `-checkanims`, `-sheet NAME`, `-nosound`, and a headless mode that writes BMP screenshots:
@@ -34,7 +48,7 @@ names follow Doom's, so its source is a map to this one.
 | Folder | Header | Files | Role |
 |---|---|---|---|
 | `src/platform/` | `platform.h` | `i_system i_video i_sound d_event` | SDL2: window, input, sound mixer, timing, event queue; basic types |
-| `src/engine/` | `engine.h` | `w_gra w_exe w_png w_photo v_video m_random m_argv` | `.GRA` archives (Doom: `w_wad`), tables inside `PRAGE.EXE`, PNG photos turned into sprite files; 320x200 framebuffer and fonts; random numbers; command line |
+| `src/engine/` | `engine.h` | `w_gra w_exe w_png w_photo v_video m_random m_argv` | `.GRA` archives (Doom: `w_wad`), tables inside `PRAGE.EXE`, PNG photos turned into sprite files; 640×480 framebuffer and fonts; random numbers; command line |
 | `src/game/` | `game.h` | `info p_creature p_script p_check` | fighter state tables (Doom: `info`) loaded from creature files; Primal Rage's bytecode interpreter (`-script`) and the check against it |
 | | | `p_mobj p_user p_map p_inter p_enemy p_effect p_tick` | play simulation: state machine, ticcmd control, hit boxes, damage, CPU AI, particles, round flow |
 | | | `r_main r_stage st_stuff s_sound` | the fight scene and arenas, HUD and announcements, sound effects |
@@ -62,6 +76,10 @@ tic by tic, and all 266 animations and moves match. How the original works,
 and why we convert instead of following it, is in
 [docs/primal-rage-scripts.md](docs/primal-rage-scripts.md).
 `tools/extract_scripts.py` dumps all the tables to JSON.
+
+`make check` also tests legacy sprite enlargement, native photo detail,
+clipping, hotspots, mirroring, scaling and hit flashes. `make checkvideo` runs
+these renderer checks independently of the original game data.
 
 ## What comes from the original data
 

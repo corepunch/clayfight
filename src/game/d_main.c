@@ -43,7 +43,7 @@ static void D_Display(void)
         ST_Drawer(match.wins);
         HU_Drawer();
         if (paused)
-            V_DrawTextCentered(FONT_BIG, SCREENWIDTH / 2, 80, "PAUSED");
+            V_DrawTextCentered(FONT_BIG, VIEWWIDTH / 2, 80, "PAUSED");
         break;
     }
     I_FinishUpdate(screen);
@@ -85,7 +85,7 @@ static void D_DrawSheet(const fighterdef_t *def)
     int n = g->numframes, cols = 1;
     while (cols * cols * 1.6 < n)
         cols++;
-    int rows = (n + cols - 1) / cols, cw = SCREENWIDTH / cols, ch = (SCREENHEIGHT - 10) / rows;
+    int rows = (n + cols - 1) / cols, cw = VIEWWIDTH / cols, ch = (VIEWHEIGHT - 10) / rows;
     for (int i = 0; i < n; i++) {
         patch_t *p = W_Frame(g, i);
         if (!p)

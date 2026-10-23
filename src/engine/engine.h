@@ -7,6 +7,12 @@
 
 #include "platform/platform.h"
 
+// Drawing and gameplay use a 320x240 coordinate space; the framebuffer has
+// two square pixels per unit. Legacy patches scale up; photos retain detail.
+#define VIEWWIDTH (SCREENWIDTH / 2)
+#define VIEWHEIGHT (SCREENHEIGHT / 2)
+#define PIXELS_PER_UNIT 2
+
 // --- m_argv.c: command line parameters (cf. m_argv.h) ----------------------
 extern int myargc;
 extern char **myargv;
@@ -28,6 +34,7 @@ typedef struct {
     int w, h;
     int x, y; // hotspot
     byte *pixels; // w*h palette indices, 0 = transparent
+    byte *detail; // optional (w*2)*(h*2) photo pixels, same palette and bounds
     int maxval;
     bool hasbox;
     int bx0, by0, bx1, by1;
@@ -128,7 +135,8 @@ void V_FillRect(int x, int y, int w, int h, pixel_t color);
 void V_VGradient(int y, int h, pixel_t top, pixel_t bottom);
 pixel_t V_Lerp(pixel_t a, pixel_t b, float t);
 
-// Draw with the hotspot at (x, y), optionally scaled.
+// Draw with the hotspot at (x, y), optionally scaled. Coordinates and sizes
+// use VIEWWIDTH x VIEWHEIGHT units; photos can supply native display pixels.
 void V_DrawPatch(int x, int y, const patch_t *p, const palette_t *pal, int flags);
 void V_DrawPatchScaled(int x, int y, const patch_t *p, const palette_t *pal, int flags, float sx, float sy);
 

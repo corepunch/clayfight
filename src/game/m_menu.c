@@ -6,8 +6,8 @@
 // frames 39-55 zoom a stone slab in, 25-38 build the PRIMAL letters and
 // 19-24 are the RAGE logo. Negative hotspots are offsets from the viewport's
 // top-left corner.
-#define VIEW_X ((SCREENWIDTH - 272) / 2)
-#define VIEW_Y 6
+#define VIEW_X ((VIEWWIDTH - 272) / 2)
+#define VIEW_Y ((VIEWHEIGHT - 170) / 2)
 #define SLAB_FIRST 39
 #define SLAB_LAST 45 // the frame that fills the screen width
 #define PRIMAL_FRAME 37
@@ -64,6 +64,6 @@ void M_Drawer(void)
     if (pagetic > 80)
         M_DrawTitleFrame(RAGE_FRAME, VIEW_X, VIEW_Y);
     if (pagetic & 32)
-        V_DrawTextCentered(FONT_SMALL, SCREENWIDTH / 2, SCREENHEIGHT - 20, "PRESS START");
-    V_DrawTextCentered(FONT_SMALL, SCREENWIDTH / 2, SCREENHEIGHT - 9, "WASD + R T F G     ARROWS + O P L ;");
+        V_DrawTextCentered(FONT_SMALL, VIEWWIDTH / 2, VIEWHEIGHT - 20, "PRESS START");
+    V_DrawTextCentered(FONT_SMALL, VIEWWIDTH / 2, VIEWHEIGHT - 9, "WASD + R T F G     ARROWS + O P L ;");
 }

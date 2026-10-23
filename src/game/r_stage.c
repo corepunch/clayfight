@@ -29,7 +29,7 @@ void R_PrepareStage(stage_t *st)
     int area = 0;
     for (int i = 0; i < gra->numframes; i++) {
         patch_t *p = W_Frame(gra, i);
-        if (p && p->w >= SCREENWIDTH && p->w * p->h > area) {
+        if (p && p->w >= VIEWWIDTH && p->w * p->h > area) {
             area = p->w * p->h;
             st->sky = p;
         }
@@ -75,28 +75,28 @@ void R_PrepareStage(stage_t *st)
 
 void R_DrawStage(const stage_t *st, int camx)
 {
-    float t = (float)camx / (ARENA_WIDTH - SCREENWIDTH);
+    float t = (float)camx / (ARENA_WIDTH - VIEWWIDTH);
 
     V_VGradient(0, HORIZON_Y, W_RGB(20, 10, 30), W_RGB(60, 30, 50));
     if (st->sky) {
         const patch_t *s = st->sky;
-        int x = -(int)lroundf(t * MAX(0, s->w - SCREENWIDTH));
+        int x = -(int)lroundf(t * MAX(0, s->w - VIEWWIDTH));
         V_DrawPatch(x + s->x, HORIZON_Y - s->h + s->y, s, st->skypal, 0);
     }
     for (int i = 0; i < st->numprops; i++)
         V_DrawPatch((int)lroundf(st->propx[i] - camx * 0.75f), HORIZON_Y + 6, st->props[i], st->proppal[i], 0);
 
     // floor: gradient plus receding lines anchored to the camera
-    int fh = SCREENHEIGHT - HORIZON_Y;
+    int fh = VIEWHEIGHT - HORIZON_Y;
     V_VGradient(HORIZON_Y, fh, st->floortop, st->floorbottom);
-    float vx = SCREENWIDTH / 2.f;
+    float vx = VIEWWIDTH / 2.f;
     for (int wx = -ARENA_WIDTH; wx <= ARENA_WIDTH * 2; wx += 48) {
         float bottom = (float)(wx - camx); // where the line meets the bottom edge
-        for (int y = HORIZON_Y + 2; y < SCREENHEIGHT; y += 2) {
+        for (int y = HORIZON_Y + 2; y < VIEWHEIGHT; y += 2) {
             float k = (float)(y - HORIZON_Y) / fh;
             V_FillRect((int)lroundf(vx + (bottom - vx) * k), y, 1, 1, st->floorline);
         }
     }
     for (int i = 1; i < 7; i++)
-        V_FillRect(0, HORIZON_Y + fh * i * i / 49, SCREENWIDTH, 1, st->floorline);
+        V_FillRect(0, HORIZON_Y + fh * i * i / 49, VIEWWIDTH, 1, st->floorline);
 }

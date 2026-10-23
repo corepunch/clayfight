@@ -153,7 +153,10 @@ When the file loads, every photo is processed together (`src/engine/w_photo.c`):
    white eyes and pale parts survive. Only the main blob is kept, and small
    holes are filled.
 2. **One scale for everything.** Set so the first `stand` photo's figure is
-   `height` pixels tall. Consistent framing between shots therefore matters.
+   `height` world units tall (twice that many screen pixels at 640×480).
+   Consistent framing between shots therefore matters. A second sample from
+   each source supplies the display pixels; the original silhouette still
+   determines gameplay bounds and reach.
 3. **One palette.** The figure pixels of all photos are reduced to 31 colours
    (median cut), like a Primal Rage fighter. `palette 1` and `palette 2` are
    colour-swapped versions; the second player uses `alt` (default 1) in a

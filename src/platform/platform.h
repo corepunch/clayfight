@@ -14,8 +14,8 @@
 typedef uint8_t byte;
 typedef uint32_t pixel_t; // 0xAARRGGBB
 
-#define SCREENWIDTH 320
-#define SCREENHEIGHT 200
+#define SCREENWIDTH 640
+#define SCREENHEIGHT 480
 
 // Fixed simulation rate. Doom runs at 35Hz; arcade fighters run at 60Hz.
 #define TICRATE 60

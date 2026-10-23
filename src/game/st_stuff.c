@@ -14,7 +14,7 @@ void ST_Drawer(const int wins[2])
     for (int i = 0; i < 2; i++) {
         const fighter_t *f = &level.fighters[i];
         bool left = i == 0;
-        int x = left ? 8 : SCREENWIDTH - 8 - BAR_W;
+        int x = left ? 8 : VIEWWIDTH - 8 - BAR_W;
         V_FillRect(x - 1, BAR_Y - 1, BAR_W + 2, BAR_H + 2, 0xff000000);
         V_FillRect(x, BAR_Y, BAR_W, BAR_H, 0xff601a1a);
         int shown = (int)lroundf(f->shownhealth * BAR_W / MAX_HEALTH);
@@ -35,14 +35,14 @@ void ST_Drawer(const int wins[2])
     }
     char clock[8];
     snprintf(clock, sizeof clock, "%02d", (level.time + TICRATE - 1) / TICRATE);
-    V_DrawTextCentered(FONT_BIG, SCREENWIDTH / 2, 5, clock);
+    V_DrawTextCentered(FONT_BIG, VIEWWIDTH / 2, 5, clock);
 }
 
 // --- centre-screen announcements (cf. hu_stuff.c) ---------------------------
 
 void HU_Drawer(void)
 {
-    int cx = SCREENWIDTH / 2, t = level.phasetime;
+    int cx = VIEWWIDTH / 2, t = level.phasetime;
     char msg[48];
     if (level.phase == PH_INTRO) {
         if (t < 60) {

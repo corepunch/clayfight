@@ -38,7 +38,7 @@ typedef struct {
 
 // Arena geometry, in world pixels. z grows upward from the floor (0).
 #define ARENA_WIDTH 480
-#define FLOOR_Y 182 // screen row of the floor line
+#define FLOOR_Y (VIEWHEIGHT - 18) // screen row of the floor line
 #define GRAVITY 0.42f
 
 #define ROUND_TIME 60 // seconds
@@ -281,7 +281,7 @@ void PS_Start(psanim_t *a, uint32_t script, float duration);
 bool PS_Tick(psanim_t *a);
 
 // --- r_main.c, r_stage.c: arenas and the fight scene (cf. r_local.h) --------
-#define HORIZON_Y 128
+#define HORIZON_Y (VIEWHEIGHT - 72)
 #define MAXPROPS 3
 
 typedef struct stage_s {

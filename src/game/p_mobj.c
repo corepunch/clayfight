@@ -347,7 +347,7 @@ void P_FighterThinker(fighter_t *f)
 
     // stay inside the arena and on screen
     float minx = MAX(16.f, level.camx + 14);
-    float maxx = MIN(ARENA_WIDTH - 16.f, level.camx + SCREENWIDTH - 14);
+    float maxx = MIN(ARENA_WIDTH - 16.f, level.camx + VIEWWIDTH - 14);
     if (f->x < minx) {
         f->x = minx;
         f->momx = MAX(f->momx, 0);

@@ -1,0 +1,52 @@
+# Generated concept poses; rebuild with tools/import_concepts.py.
+name BOXER
+art photo right
+height 92
+backdrop photos/backdrop.png
+speed 1.4 1.1 7.5
+width 25
+
+anim stand hold
+  photos/00.png 12
+end
+
+anim block hold
+  photos/09.png 6
+  photos/10.png 12
+end
+
+anim hit
+  photos/13.png 6
+  photos/14.png 10
+  photos/15.png 8
+end
+
+anim win hold
+  photos/00.png 30
+end
+
+anim punch
+  photos/00.png 8
+  photos/01.png 6
+  photos/02.png 6
+  photos/03.png 11
+end
+
+anim kick
+  photos/04.png 8
+  photos/05.png 7
+  photos/06.png 7
+  photos/07.png 11
+end
+
+move stand.hq punch damage 6 stun 18 strength 2 level high
+end
+
+move stand.hf punch damage 11 stun 18 strength 2 level high
+end
+
+move stand.lq kick damage 7 stun 18 strength 2 level low
+end
+
+move stand.lf kick damage 11 stun 18 strength 2 level low
+end

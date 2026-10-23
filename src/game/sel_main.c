@@ -114,9 +114,9 @@ void SEL_Drawer(void)
 {
     V_Clear(0xff000000);
     patch_t *bg = W_Frame(selgra, BACKDROP);
-    SEL_DrawFrame(BACKDROP, (SCREENWIDTH - bg->w) / 2 + bg->x, bg->y, 0, 1);
-    V_FillRect(0, 150, SCREENWIDTH, SCREENHEIGHT - 150, 0xff000000);
-    V_DrawTextCentered(FONT_SMALL, SCREENWIDTH / 2, 4, "SELECT CHARACTER");
+    SEL_DrawFrame(BACKDROP, (VIEWWIDTH - bg->w) / 2 + bg->x, bg->y, 0, 1);
+    V_FillRect(0, 150, VIEWWIDTH, VIEWHEIGHT - 150, 0xff000000);
+    V_DrawTextCentered(FONT_SMALL, VIEWWIDTH / 2, 4, "SELECT CHARACTER");
 
     // the two players' current picks, big
     for (int pl = 0; pl < 2; pl++) {
@@ -132,14 +132,14 @@ void SEL_Drawer(void)
         }
         const fighterdef_t *d = roster[cursor[pl]];
         if (d->portrait < 0) { // no portrait art (photo creatures): show the creature itself
-            int x = pl ? SCREENWIDTH - 6 - 110 : 6;
+            int x = pl ? VIEWWIDTH - 6 - 110 : 6;
             SEL_DrawCreature(d, x, 24, 110, 113, pl == 1);
             V_DrawTextCentered(FONT_BIG, x + 55, 24 + 113 + 4, d->name);
             continue;
         }
         int frame = d->portrait + (chosen[pl] ? 4 : seltime / 10 % 4);
         patch_t *p = W_Frame(selgra, frame);
-        int x = pl ? SCREENWIDTH - 6 - p->w : 6;
+        int x = pl ? VIEWWIDTH - 6 - p->w : 6;
         SEL_DrawFrame(frame, x + p->x, 24 + p->y, pl ? V_FLIP : 0, 1);
         patch_t *lab = W_Frame(selgra, d->label);
         if (lab)
@@ -149,8 +149,8 @@ void SEL_Drawer(void)
     }
 
     // roster strip with cursors; cells shrink to fit everyone
-    const int cell = MIN(44, (SCREENWIDTH - 4) / numroster), size = cell - 4, y = 156;
-    int x0 = (SCREENWIDTH - cell * numroster) / 2;
+    const int cell = MIN(44, (VIEWWIDTH - 4) / numroster), size = cell - 4, y = VIEWHEIGHT - 44;
+    int x0 = (VIEWWIDTH - cell * numroster) / 2;
     for (int i = 0; i < numroster; i++) {
         int x = x0 + i * cell + 2;
         if (roster[i]->portrait >= 0)
@@ -164,5 +164,5 @@ void SEL_Drawer(void)
         }
     }
     if (chosen[0] && chosen[1])
-        V_DrawTextCentered(FONT_BIG, SCREENWIDTH / 2, 132, "FIGHT!");
+        V_DrawTextCentered(FONT_BIG, VIEWWIDTH / 2, 132, "FIGHT!");
 }

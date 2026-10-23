@@ -13,7 +13,7 @@ void P_SetupRound(fighterdef_t *defs[2], const int palettes[2], stage_t *stage, 
     P_SpawnFighter(&level.fighters[0], defs[0], 0, ARENA_WIDTH / 2 - 70, palettes[0]);
     P_SpawnFighter(&level.fighters[1], defs[1], 1, ARENA_WIDTH / 2 + 70, palettes[1]);
     level.stage = stage;
-    level.camx = (ARENA_WIDTH - SCREENWIDTH) / 2;
+    level.camx = (ARENA_WIDTH - VIEWWIDTH) / 2;
     level.time = ROUND_TIME * TICRATE;
     level.phase = PH_INTRO;
     level.winner = -1;
@@ -29,7 +29,7 @@ static void P_SetPhase(phase_t ph)
 static void P_MoveCamera(const fighter_t *a, const fighter_t *b)
 {
     float mid = (a->x + b->x) / 2;
-    float target = CLAMP(mid - SCREENWIDTH / 2, 0, ARENA_WIDTH - SCREENWIDTH);
+    float target = CLAMP(mid - VIEWWIDTH / 2, 0, ARENA_WIDTH - VIEWWIDTH);
     level.camx += (target - level.camx) * 0.2f;
 }
 

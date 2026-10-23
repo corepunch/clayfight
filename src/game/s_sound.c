@@ -48,7 +48,7 @@ void S_Init(void)
 
 static float S_Sep(float x)
 {
-    return x < 0 ? 0 : ((x - level.camx) / SCREENWIDTH - 0.5f) * 1.2f;
+    return x < 0 ? 0 : ((x - level.camx) / VIEWWIDTH - 0.5f) * 1.2f;
 }
 
 void S_StartSound(sfxenum_t id, float x, float vol)
