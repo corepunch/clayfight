@@ -143,7 +143,7 @@ anim stand wander
 end
 ```
 
-When the file loads, every photo is processed together (`src/w_photo.c`):
+When the file loads, every photo is processed together (`src/engine/w_photo.c`):
 
 1. **Background removed.** With a `backdrop` shot, the photo is compared
    against it; without one, a smooth colour model is fitted to the photo's

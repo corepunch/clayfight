@@ -3,7 +3,7 @@
 Status: done the recommended way. `tools/pr2creature.py` converts the game's
 move scripts and tables into creature files ([creature-format.md](creature-format.md)),
 and those files are what Clayfight plays. The game's bytecode still runs
-directly with `-script` (`src/w_exe.c`, `src/p_script.c`) as a reference.
+directly with `-script` (`src/engine/w_exe.c`, `src/game/p_script.c`) as a reference.
 `make check` plays all 266 animations and moves both ways and compares
 pictures, timing, root motion and attack boxes tic by tic: they match.
 

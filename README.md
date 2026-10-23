@@ -26,20 +26,19 @@ Developer switches (Doom style): `-data <dir>`, `-creatures <dir>`,
 `-checkanims`, `-sheet NAME`, `-nosound`, and a headless mode that writes BMP screenshots:
 `-shots out/f -every 60 -tics 3000`.
 
-## Layout (Doom → Clayfight)
+## Layout
 
-| Doom | here | role |
-|---|---|---|
-| `doomdef.h` | `pr_def.h` | constants, buttons, game states |
-| `i_system/i_video/i_sound` | same names | SDL2 platform layer (window, input, mixer) |
-| `w_wad.c` | `w_gra.c`, `w_exe.c`, `w_png.c`, `w_photo.c` | INDEX directory + `.GRA` archives (RLE frames, palettes, PCM); tables inside `PRAGE.EXE`; photographed frames turned into an in-memory sprite file |
-| `v_video.c` | `v_video.c` | 320x200 framebuffer, patches, original bitmap fonts |
-| `info.c` (states, mobjinfo) | `info.c`, `p_creature.c`, `p_script.c` | creature files loaded into Doom-style `state_t` chains; or (`-script`) Primal Rage's own bytecode, with native calls bound like action functions; `p_check.c` compares the two |
-| `p_mobj/p_user/p_map/p_inter/p_enemy/p_tick` | same names | fighter state machine, ticcmd control, hit boxes, damage, CPU AI, round flow |
-| `r_main/r_things/r_sky` | `r_main.c`, `r_stage.c` | fighters, shadows, parallax arena |
-| `st_stuff/hu_stuff` | `st_stuff.c` | health bars, clock, announcements |
-| `wi_stuff/m_menu` | `sel_main.c`, `m_menu.c` | character select, title |
-| `g_game/d_main/d_event/m_argv/m_random` | same names | game flow, fixed 60Hz tic loop, event queue |
+Three folders, one header each; each layer only uses the ones below it. File
+names follow Doom's, so its source is a map to this one.
+
+| Folder | Header | Files | Role |
+|---|---|---|---|
+| `src/platform/` | `platform.h` | `i_system i_video i_sound d_event` | SDL2: window, input, sound mixer, timing, event queue; basic types |
+| `src/engine/` | `engine.h` | `w_gra w_exe w_png w_photo v_video m_random m_argv` | `.GRA` archives (Doom: `w_wad`), tables inside `PRAGE.EXE`, PNG photos turned into sprite files; 320x200 framebuffer and fonts; random numbers; command line |
+| `src/game/` | `game.h` | `info p_creature p_script p_check` | fighter state tables (Doom: `info`) loaded from creature files; Primal Rage's bytecode interpreter (`-script`) and the check against it |
+| | | `p_mobj p_user p_map p_inter p_enemy p_effect p_tick` | play simulation: state machine, ticcmd control, hit boxes, damage, CPU AI, particles, round flow |
+| | | `r_main r_stage st_stuff s_sound` | the fight scene and arenas, HUD and announcements, sound effects |
+| | | `g_game sel_main m_menu d_main` | game flow and bindings, character select (Doom: `wi_stuff`), title, startup and the 60Hz loop |
 
 As in Doom, input becomes a `ticcmd_t` each tic; the CPU opponent fills in the
 same `ticcmd_t`, so humans and AI share every rule.
@@ -51,14 +50,14 @@ loaded at startup from `creatures/` and its subfolders. A creature can be made
 from photographs: `creatures/gloop/` is a test creature built from 15 shots
 (rendered stand-ins for now, see `tools/makeclay.py`). The photo pipeline
 removes the background, scales every frame consistently, reduces the set to
-one 31-colour palette and puts the hotspot at the feet (`w_png.c`, `w_photo.c`).
+one 31-colour palette and puts the hotspot at the feet (`src/engine/w_photo.c`).
 The Primal Rage fighters live in `creatures/primalrage/`. `make` builds them from your
 `primalrage/PRAGE.EXE` with `tools/pr2creature.py`. The converter flattens
 the game's own move scripts and tables: frame order and timing, root motion,
 damage, stun, attack boxes, palettes.
 
 The game's bytecode interpreter is kept as a reference: `-script` plays from
-`PRAGE.EXE` directly (`w_exe.c`, `p_script.c`). `make check` compares the two
+`PRAGE.EXE` directly (`src/engine/w_exe.c`, `src/game/p_script.c`). `make check` compares the two
 tic by tic, and all 266 animations and moves match. How the original works,
 and why we convert instead of following it, is in
 [docs/primal-rage-scripts.md](docs/primal-rage-scripts.md).

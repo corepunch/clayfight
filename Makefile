@@ -4,11 +4,13 @@ CC ?= cc
 SDL_CFLAGS := $(shell sdl2-config --cflags)
 SDL_LIBS := $(shell sdl2-config --libs)
 CFLAGS ?= -O2 -g
-CFLAGS += -std=c99 -Wall -Wextra -Wno-unused-parameter -D_DEFAULT_SOURCE $(SDL_CFLAGS)
+CFLAGS += -std=c99 -Wall -Wextra -Wno-unused-parameter -D_DEFAULT_SOURCE -Isrc $(SDL_CFLAGS)
 LDLIBS += $(SDL_LIBS) -lm
 
-SRCS := $(wildcard src/*.c)
+# one folder per layer, one header each: platform <- engine <- game
+SRCS := $(wildcard src/*/*.c)
 OBJS := $(SRCS:src/%.c=build/%.o)
+HDRS := $(wildcard src/*/*.h)
 
 all: clayfight creatures
 
@@ -25,11 +27,9 @@ creatures/primalrage/sauron.txt: primalrage/PRAGE.EXE tools/pr2creature.py tools
 check: all
 	./clayfight -checkanims
 
-build/%.o: src/%.c $(wildcard src/*.h) | build
+build/%.o: src/%.c $(HDRS)
+	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c -o $@ $<
-
-build:
-	mkdir -p build
 
 clean:
 	rm -rf build clayfight

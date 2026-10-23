@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """grasheet.py -- render Primal Rage .GRA frames to a labelled PNG contact sheet.
 
-Stdlib only. Used to map animations to frame numbers for src/fighters.c.
+Stdlib only. Used to map animations to frame numbers when writing creature files.
 
   python3 tools/grasheet.py OUT.png FILE [FILE...] [--pal PALFILE[:INDEX]] [--scale S] [--width W]
 
