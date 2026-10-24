@@ -39,6 +39,12 @@ void I_FinishUpdate(const pixel_t *screen);
 void I_StartTic(void); // pump SDL events into the event queue
 bool I_QuitRequested(void);
 void I_SaveScreenshot(const pixel_t *screen, const char *path);
+// Local phone companion. Subprocess launch stays in the platform layer.
+bool I_StartCreator(const char *creatures, const char *data);
+int I_CreatorStatus(void); // 0 starting, 1 ready, -1 stopped/failed
+const char *I_CreatorURL(bool phone);
+void I_OpenCreator(void);
+void I_CloseCreator(void);
 
 // --- i_sound.c: SDL audio mixer for 8-bit PCM samples (cf. i_sound.h) ------
 typedef struct {

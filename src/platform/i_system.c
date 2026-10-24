@@ -24,6 +24,7 @@ void I_Sleep(int ms)
 
 void I_Shutdown(void)
 {
+    I_CloseCreator();
     I_ShutdownSound();
     I_ShutdownGraphics();
     SDL_Quit();

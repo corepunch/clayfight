@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#141310"><title>Clayfight · Создать бойца</title><link rel="stylesheet" href="/style.css"></head>
+<body>
+<header><a class="brand" href="/">CLAYFIGHT<span>МАСТЕРСКАЯ БОЙЦОВ</span></a><span class="local">● Ваша локальная мастерская</span></header>
+<main>
+<section id="setup" class="intro">
+ <p class="eyebrow">СЛЕПИЛИ? ТЕПЕРЬ ОЖИВИМ.</p><h1>Ваш монстрик.<br><em>Его большая игра.</em></h1>
+ <p class="lead">Самое сложное уже позади: боец из пластилина готов. Осталось снять 15 поз и портрет — мы уберём фон и подготовим его к бою.</p>
+ <div class="setup-grid"><div><label for="name">Имя на арене</label><input id="name" maxlength="16" placeholder="Например, GROM" autocomplete="off" pattern="[A-Za-z][A-Za-z0-9_]{0,15}"><small>1–16 латинских букв, цифр или _. Первая — буква.</small></div>
+ <fieldset><legend>Как будете снимать?</legend><label class="choice"><input name="mode" type="radio" value="tripod" checked><span>На подставке<small>Одна дистанция и масштаб для всех поз.</small></span></label><label class="choice"><input name="mode" type="radio" value="handheld"><span>С рук<small>На каждом кадре отметим размер головы, чтобы выровнять масштаб.</small></span></label></fieldset></div>
+ <div class="tips"><b>Приготовьте маленькую сцену</b><p>Однотонная бумага за фигуркой и под ногами, мягкий свет. Выберите фон, который отличается от пластилина. Боец смотрит вправо; кулаки, рога и хвост целиком в кадре. Во время съёмки убирайте руки из кадра.</p></div>
+ <div class="row"><button id="start" class="primary">Начать съёмку <span>→</span></button><button id="resume" hidden>Продолжить черновик</button></div>
+ <p id="setup-status" role="status"></p>
+</section>
+<section id="shoot" hidden>
+ <div class="heading"><div><p class="eyebrow" id="step-count"></p><h1 id="pose-title"></h1></div><button id="overview">Все кадры</button></div>
+ <div class="shoot-grid"><div>
+  <div class="viewfinder" id="viewfinder"><video id="live" autoplay muted playsinline hidden></video><canvas id="preview" width="640" height="480"></canvas><div id="guide" aria-hidden="true"></div><span class="view-tag" id="view-tag">НАПРАВЛЯЮЩАЯ ПОЗЫ</span><span class="floor-label">ЛИНИЯ ОПОРЫ</span><span id="countdown" hidden></span></div>
+  <p id="hint" class="hint"></p>
+  <div class="row actions"><button id="camera">Включить камеру</button><button id="snap" class="primary" hidden>Снимок</button><button id="record" hidden>Видео · 3 сек</button><label class="button">Снять / выбрать фото<input id="photo" type="file" accept="image/*" capture="environment" hidden></label><label class="button">Выбрать видео<input id="video-file" type="file" accept="video/*" hidden></label></div>
+  <div id="clip-area" hidden><video id="clip" controls playsinline muted></video><button id="use-frame">Взять этот кадр</button><small>Поставьте видео на паузу в нужной позе. Исходное видео сохранится вместе с бойцом.</small></div>
+ </div><aside>
+  <p class="eyebrow">СНИМАЕМ БОЙЦА</p><h2>Силуэт — подсказка,<br>а характер — ваш.</h2><p>Совместите ноги с линией опоры. Голова должна попадать в верхнюю область; оставьте место для длинных рук и хвоста.</p>
+  <label class="slider-label">Видимость силуэта <input id="opacity" type="range" min="0" max="100" value="48"></label>
+  <div id="alignment" hidden><hr><h3>Выравнивание кадра</h3><p id="align-hint"></p><button id="mark-head">Отметить ширину головы</button><p id="head-status" class="small"></p>
+   <label class="slider-label">Масштаб <input id="zoom" type="range" min="50" max="200" value="100"></label><label class="slider-label">Влево / вправо <input id="shift" type="range" min="-120" max="120" value="0"></label>
+   <label class="slider-label">Отделение фона <input id="threshold" type="range" min="12" max="100" value="38"></label><button id="compare">Показать исходник</button><button id="retake">Переснять</button>
+  </div>
+  <p id="status" role="status" aria-live="polite"></p><button id="accept" class="primary wide" disabled>Сохранить позу →</button><button id="previous" class="quiet">← Предыдущая поза</button>
+  <small id="draft-status">Черновик сохраняется в этом браузере.</small>
+ </aside></div>
+ <nav id="steps" aria-label="Позы бойца"></nav>
+</section>
+<section id="review" hidden><p class="eyebrow">ПОСЛЕДНИЙ ШАГ</p><h1>Знакомьтесь: <em id="review-name"></em></h1><p class="lead">Проверьте позы и портрет. Нажмите на кадр, чтобы переснять его. В игре боец будет того же размера, что и остальные.</p><div id="gallery"></div><div class="row"><button id="publish" class="primary">Добавить бойца в игру →</button><button id="back-shoot">Вернуться к съёмке</button></div><p id="publish-status" role="status"></p></section>
+<section id="done" hidden class="intro"><p class="eyebrow">НОВЫЙ БОЕЦ ГОТОВ</p><h1>До встречи<br><em>на арене.</em></h1><p class="lead" id="done-message"></p><p>Вернитесь в Clayfight и нажмите Enter на экране создания. Портрет появится рядом с динозаврами Primal Rage. Выберите бойца и начинайте завоевание Урта.</p><button id="another" class="primary">Создать ещё одного</button></section>
+</main><footer>Пластилин → фотографии → настоящий боец. <span>Фото и видео остаются на вашем компьютере.</span></footer>
+<script type="module" src="/app.js"></script></body></html>
