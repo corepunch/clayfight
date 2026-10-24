@@ -20,8 +20,12 @@ typedef uint32_t pixel_t; // 0xAARRGGBB
 // Fixed simulation rate. Doom runs at 35Hz; arcade fighters run at 60Hz.
 #define TICRATE 60
 
+#ifndef MIN
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
+#endif
+#ifndef MAX
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
+#endif
 #define CLAMP(x, lo, hi) MIN(MAX(x, lo), hi)
 
 // --- i_system.c: timing, memory and errors (cf. i_system.h) ----------------

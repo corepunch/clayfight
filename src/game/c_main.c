@@ -149,5 +149,9 @@ void C_Drawer(void)
     snprintf(text, sizeof text, "%s  /  %s", campaign.opponents[current]->name,
              campaign.finalbattle ? "DINOSAUR GRAVEYARD" : stages[home[current]].name);
     V_DrawTextCentered(FONT_SMALL, 160, 209, text);
+#ifdef CLAY_IOS
+    V_DrawTextCentered(FONT_SMALL, 160, 230, "SELECT: FIGHT    BACK: MAIN MENU");
+#else
     V_DrawTextCentered(FONT_SMALL, 160, 230, "PRESS START TO FIGHT    ESC: MAIN MENU");
+#endif
 }

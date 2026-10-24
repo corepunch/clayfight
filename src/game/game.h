@@ -181,6 +181,7 @@ extern int numroster;
 void P_LoadRoster(const char *dir);
 void P_RefreshRoster(const char *dir); // append newly published creatures
 fighterdef_t *P_LoadCreature(const char *path);
+bool P_RegisterCreature(fighterdef_t *def, const char *path); // already validated, atomically published
 
 // info.c
 bool P_Playable(const fighterdef_t *def);
@@ -528,6 +529,11 @@ void M_Create(void);
 void M_CreateTicker(void);
 bool M_CreateResponder(const event_t *ev);
 void M_CreateDrawer(void);
+
+// d_main.c: shared initialization; desktop loop or native display link.
+int D_InitGame(int argc, char **argv);
+void D_RunTic(void);
+void D_Display(void);
 
 // --- sel_main.c: character select screen (cf. wi_stuff.h) ------------------
 void SEL_Start(void);

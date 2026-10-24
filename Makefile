@@ -1,8 +1,8 @@
-# Clayfight -- C99 + SDL2
+# Clayfight -- native iPhone/iPad app and desktop development harness
 
 CC ?= cc
-SDL_CFLAGS := $(shell sdl2-config --cflags)
-SDL_LIBS := $(shell sdl2-config --libs)
+SDL_CFLAGS = $(shell sdl2-config --cflags)
+SDL_LIBS = $(shell sdl2-config --libs)
 CFLAGS ?= -O2 -g
 CFLAGS += -std=c99 -Wall -Wextra -Wno-unused-parameter -D_DEFAULT_SOURCE -Isrc $(SDL_CFLAGS)
 LDLIBS += $(SDL_LIBS) -lm
@@ -55,3 +55,12 @@ checkcapture: all
 	python3 -B tests/capture.py
 
 .PHONY: checkcapture
+
+# Native targets compile the shared C engine with UIKit/AVFoundation, without SDL.
+ios-simulator:
+	xcodebuild -project ios/Clayfight.xcodeproj -scheme Clayfight -configuration Debug -sdk iphonesimulator -derivedDataPath build/ios CODE_SIGNING_ALLOWED=NO build
+
+ios-device:
+	xcodebuild -project ios/Clayfight.xcodeproj -scheme Clayfight -configuration Release -sdk iphoneos -derivedDataPath build/ios-device CODE_SIGNING_ALLOWED=NO build
+
+.PHONY: ios-simulator ios-device

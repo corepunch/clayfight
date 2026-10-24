@@ -384,6 +384,16 @@ static void P_FindCreatures(const char *dir, int depth, char **names, int *n)
     closedir(d);
 }
 
+bool P_RegisterCreature(fighterdef_t *def, const char *path)
+{
+    if (!def || numroster >= MAXROSTER) return false;
+    for (int i = 0; i < numroster; i++)
+        if (!strcmp(loadedpaths[i], path)) return false;
+    snprintf(loadedpaths[numroster], sizeof loadedpaths[0], "%s", path);
+    roster[numroster++] = def;
+    return true;
+}
+
 void P_RefreshRoster(const char *dir)
 {
     char *names[MAXROSTER];
@@ -397,8 +407,8 @@ void P_RefreshRoster(const char *dir)
         for (int j = 0; j < numroster; j++)
             if (!strcmp(loadedpaths[j], names[i])) loaded = true;
         if (!loaded && numroster < MAXROSTER) {
-            snprintf(loadedpaths[numroster], sizeof loadedpaths[0], "%s", names[i]);
-            roster[numroster++] = P_LoadCreature(names[i]);
+            fighterdef_t *def = P_LoadCreature(names[i]);
+            P_RegisterCreature(def, names[i]);
         }
         free(names[i]);
     }

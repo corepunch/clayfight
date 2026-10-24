@@ -29,7 +29,7 @@
 static const char *shotprefix;
 static int shotevery = 60, maxtics;
 
-static void D_Display(void)
+void D_Display(void)
 {
     switch (gamestate) {
     case GS_MENU:
@@ -56,7 +56,7 @@ static void D_Display(void)
     I_FinishUpdate(screen);
 }
 
-static void D_RunTic(void)
+void D_RunTic(void)
 {
     I_StartTic();
     responder_t list[2] = {G_Responder, NULL};
@@ -155,7 +155,7 @@ static void D_DoomLoop(void)
     }
 }
 
-int main(int argc, char **argv)
+int D_InitGame(int argc, char **argv)
 {
     myargc = argc;
     myargv = argv;
@@ -210,6 +210,14 @@ int main(int argc, char **argv)
         M_StartTitle();
     }
 
+    return -1; // initialized; native hosts drive ticks and display themselves
+}
+
+#ifndef CLAY_IOS
+int main(int argc, char **argv)
+{
+    int result = D_InitGame(argc, argv);
+    if (result >= 0) return result;
     const char *sheet = M_ParmValue("-sheet", NULL);
     if (sheet && shotprefix) {
         char path[600];
@@ -224,3 +232,5 @@ int main(int argc, char **argv)
     I_Shutdown();
     return 0;
 }
+
+#endif

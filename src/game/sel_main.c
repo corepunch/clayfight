@@ -190,7 +190,13 @@ void SEL_Drawer(void)
     }
     char label[64];
     if (gamemode == GM_ENDURANCE) snprintf(label, sizeof label, "TEAM 1: %d/4   TEAM 2: %d/4   PAGE %d", teamcount[0], teamcount[1], page + 1);
-    else snprintf(label, sizeof label, "C: CREATE FIGHTER    PAGE %d/%d", page + 1, (numroster + 13) / 14);
+    else {
+#ifdef CLAY_IOS
+        snprintf(label, sizeof label, "SELECT: CONFIRM    PAGE %d/%d", page + 1, (numroster + 13) / 14);
+#else
+        snprintf(label, sizeof label, "C: CREATE FIGHTER    PAGE %d/%d", page + 1, (numroster + 13) / 14);
+#endif
+    }
     V_DrawTextCentered(FONT_SMALL, 160, 232, label);
     if (chosen[0] && chosen[1]) V_DrawTextCentered(FONT_BIG, 160, 132, "FIGHT!");
 }

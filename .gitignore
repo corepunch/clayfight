@@ -4,10 +4,14 @@ creatures/primalrage/
 
 # build output
 build/
-clayfight
+/clayfight
 *.bmp
 
 # local clutter
 .DS_Store
 __pycache__/
 .claude/settings.local.json
+
+# personal Xcode state
+ios/**/xcuserdata/
+*.xcuserstate

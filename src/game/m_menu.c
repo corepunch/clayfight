@@ -68,7 +68,11 @@ void M_Background(const char *heading)
                      &slabs->palettes[W_GuessPalette(border, slabs)], 0, 2, 1);
     V_FillRect(40, 56, 240, 148, 0xff100d10);
     V_DrawTextCentered(FONT_BIG, 160, 21, heading);
+#ifdef CLAY_IOS
+    V_DrawTextCentered(FONT_SMALL, 160, 230, "D-PAD: MOVE   SELECT: CONFIRM   BACK: RETURN");
+#else
     V_DrawTextCentered(FONT_SMALL, 160, 230, "ARROWS / WASD: MOVE   ENTER: SELECT   ESC: BACK");
+#endif
 }
 void M_StartTitle(void)
 {
@@ -154,8 +158,12 @@ void M_Drawer(void)
     const char *headings[] = {"MAIN MENU", "CONFIG OPTIONS", "MODIFY CONTROLS", "START MENU", "OPTIONS MENU", "ADJUST VOLUME", "SOUND TEST"};
     M_Background(headings[page]);
     if (page == MENU_CONTROLS) {
+#ifdef CLAY_IOS
+        const char *lines[] = {"D-PAD: MOVE / JUMP / CROUCH", "HQ: HIGH QUICK", "HF: HIGH FIERCE", "LQ: LOW QUICK", "LF: LOW FIERCE", "SELECT: CONFIRM CHOICE", "BACK: RETURN / PAUSE", "MENU: MAIN MENU", "HOLD TWO BUTTONS TO MOVE AND ATTACK"};
+#else
         const char *lines[] = {"LEFT PLAYER: WASD", "HI QUICK / FIERCE: R / T", "LO QUICK / FIERCE: F / G", "RIGHT PLAYER: ARROWS",
             "HI QUICK / FIERCE: O / P", "LO QUICK / FIERCE: L / ;", "P2 JOINS WITH AN ATTACK", "ESC: PAUSE   Q: LEAVE PAUSED FIGHT", "GAMEPADS: D-PAD + FOUR FACE BUTTONS"};
+#endif
         for (int i = 0; i < 9; i++) V_DrawTextCentered(FONT_SMALL, 160, 67 + 15 * i, lines[i]);
         return;
     }
