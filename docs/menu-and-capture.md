@@ -1,8 +1,15 @@
 # Menus, conquest and the capture workshop
 
-Run `make && ./clayfight`. Enter opens the main menu. All SDL screens still
-render at 640×480, with the original pixel art enlarged 2×. WASD or arrows
-navigate menus; Enter / a face button confirms; Esc / controller Back returns.
+Clayfight targets **native iPhone and iPad**. Open `ios/Clayfight.xcodeproj`
+and run the Clayfight scheme. The shared C engine renders at 640×480, with the
+original art enlarged 2×. UIKit presents the game and touch controls;
+AVFoundation captures photographs and video inside the app. The native target
+does not link SDL and does not run a browser, web server, Python or subprocess.
+
+Build for Simulator with `make ios-simulator`; `make ios-device` verifies the
+unsigned iPhoneOS build. To install on a physical device, select your signing
+team in Xcode and run on that device. See `ios/README.md` for the native layout.
+`make && ./clayfight` remains the desktop development harness.
 
 ## Original reference
 
@@ -56,11 +63,11 @@ Esc pauses a fight; Q while paused abandons it and returns to the main menu.
 
 ## Photographing a fighter
 
-Choose **Create Fighter**, or press C in character select. The game starts a
-local Python companion and opens the workshop in a browser. No Python packages
-are needed. It lists a second URL for a phone or tablet on the same Wi-Fi;
-append the displayed `?token=...` to that address. B reopens the computer's
-workshop. The server closes when the game exits.
+Choose **Create Fighter** in the app. The native camera view opens on the
+same iPhone or iPad, with an adjustable pose outline drawn above the live
+`AVCaptureVideoPreviewLayer`. Camera permission is requested when the user
+taps Enable Camera. Neither HTTPS nor a network connection is needed. Recorded
+clips are silent, so the app does not request microphone permission.
 
 The workshop is in Russian. Name the fighter using 1–16 Latin letters, digits
 or underscores, starting with a letter; this matches the original game's font.
@@ -73,41 +80,27 @@ Choose tripod or handheld mode, then capture:
 5. A separate close-up portrait.
 
 Every screen overlays the same neutral monster outline, posed for the requested
-movement. The overlay has adjustable opacity, a centre line, safe margins and
-an explicit foot baseline. The jump photo is taken on the table; the simulation
+movement. The original vector artwork has shaped hands/feet, distinct walking
+phases, a separate frontal portrait, directional arrows and a highlighted active
+limb. White contours with dark edges remain visible on light and dark backdrops.
+The overlay has adjustable opacity, corner margins and an explicit foot baseline. The jump photo is taken on the table; the simulation
 supplies the actual airborne height. The portrait step asks the user to move
-closer and face the camera.
+closer and face the camera. Keep the whole head and horns inside the frame;
+shoulders may be cropped at the bottom.
 
-A live camera can capture a still or record a three-second silent video. The
-recording and a representative frame are kept. Alternatively, import a photo
-or a short video, scrub to the wanted moment and choose that frame. Videos
-are archived; motion is assembled from the guided pose frames, not inferred
-from arbitrary video. Each video is limited to 12 MB.
-
-Browser live camera access requires `localhost` or **trusted HTTPS**. A phone
-opening the computer's plain HTTP Wi-Fi address can use the native photo
-capture/file picker and align the result under the outline afterward; that
-native camera UI cannot display the web overlay. For live overlays on iOS,
-serve with a certificate trusted by the device:
-
-```sh
-python3 tools/capture_server.py --host 0.0.0.0 --port 8765 \
-  --cert /path/to/trusted-certificate.pem --key /path/to/key.pem
-```
-
-The browser's camera requirements are documented by
-[MDN](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia).
-The workshop chooses a supported recording format, including MP4 on Safari,
-rather than assuming WebM; see
-[WebKit's MediaRecorder documentation](https://webkit.org/blog/11353/mediarecorder-api/).
-Camera hardware and recording on a physical iPhone/iPad still need device QA.
+The camera captures stills or three-second videos using AVFoundation. Videos
+are kept with the fighter; a representative frame supplies the pose. The system
+photo/video picker also accepts existing media, including iPhone HEIC images.
+For an imported video, use native playback to choose the frame. Motion is
+assembled from the guided pose frames, not inferred from arbitrary video.
 
 ## Alignment and processing
 
 Use a plain, contrasting paper backdrop and soft lighting; remove hands before
 capture. Background flood-fill keeps the main silhouette and preserves pale
 features enclosed by clay. Review the cutout and adjust the separation threshold
-if eyes, fingers or tail are wrong. A clipped figure is rejected. The processing
+if eyes, fingers or tail are wrong. A clipped body figure is rejected. Portraits allow the shoulders to touch the
+bottom edge while still requiring margins above and beside the head. The processing
 is intended for controlled plain backdrops, not arbitrary scenes.
 
 Tripod mode uses one scale measured from the standing pose. Handheld mode asks
@@ -118,25 +111,34 @@ perspective or compensate for changes in camera angle. Both modes align feet
 automatically and allow manual zoom and horizontal corrections. Retaking the
 stand regenerates all output frames against the new reference.
 
-Review all 16 images before publishing. Accepted frames, alignment and videos
-are saved as an IndexedDB draft on that device. Publishing sends them to the
-local game host, generates a regular creature file, and runs the actual engine
-for background removal, shared 31-colour palette, 92-world-unit height,
-640×480 photo detail, foot hotspots and portrait processing. A failed import
-never exposes a half-written fighter in the roster: validation happens in a
-hidden staging directory, then the whole folder is atomically published.
+Review all 16 images before publishing. The native draft lives in the app's
+Application Support directory; reopening resumes at the first missing pose.
+Publishing removes the background and aligns all frames on the device, writes
+a regular creature file in a hidden staging directory and atomically moves the
+completed folder into the app's roster. The existing C photo pipeline then
+supplies its shared 31-colour palette, 92-world-unit height, 640×480 photo detail,
+foot hotspots and separate portrait. Selection refreshes as the camera closes.
 
-Outputs are `creatures/custom-NAME-ID/`: `fighter.txt`, normalized `photos/`,
-original `sources/` (including recorded videos), `capture.json` and a processed
-preview sheet. Return to the game and press Enter to refresh character select;
-no restart is needed. The portrait appears alongside the original seven and
-the existing clay fighters. The roster pages after 14 cells and supports up to
-64 fighters. Live capture is a companion for the desktop SDL game; this does
-not add a native iOS game target.
+The app keeps original photos and recorded movies under the fighter's `sources/`
+directory, normalized `photos/`, `fighter.txt` and `capture.plist`. Bundled
+original/concept fighters and user-created fighters appear in the same roster.
+The roster pages after 14 cells and supports up to 64 fighters. Original game
+data is bundled from the developer's local copy during the Xcode build; it is
+never downloaded at runtime or committed to the repository.
+
+The old `tools/capture_server.py` browser workshop is a **desktop development
+utility**, not the iPhone/iPad product. Its browser permission/HTTPS constraints
+do not apply to the native app.
 
 ## Verification
 
-`make check` builds the game, checks rendering, compares all 266 original move
+The Debug app accepts `--native-checks` to run pixel/coordinate checks,
+handheld scale checks, separate portrait import and a real custom-fighter match
+inside the iOS runtime. It writes `native-checks.json` in the app's Application
+Support/Clayfight directory. `--capture` opens the native wizard for Simulator
+layout inspection. Real camera hardware still requires physical-device QA.
+
+`make check` builds the desktop harness, checks rendering, compares all 266 original move
 animations, exercises the complete conquest/continue/final flow and the four
 start modes, and imports a photographed fixture through the real engine before
 running it against Sauron. `node tests/capture-processing.mjs` separately checks

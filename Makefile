@@ -59,6 +59,7 @@ checkcapture: all
 # Native targets compile the shared C engine with UIKit/AVFoundation, without SDL.
 ios-simulator:
 	xcodebuild -project ios/Clayfight.xcodeproj -scheme Clayfight -configuration Debug -sdk iphonesimulator -derivedDataPath build/ios CODE_SIGNING_ALLOWED=NO build
+	codesign --force --sign - build/ios/Build/Products/Debug-iphonesimulator/Clayfight.app
 
 ios-device:
 	xcodebuild -project ios/Clayfight.xcodeproj -scheme Clayfight -configuration Release -sdk iphoneos -derivedDataPath build/ios-device CODE_SIGNING_ALLOWED=NO build
