@@ -13,7 +13,7 @@ UIImage *CFCanonicalPhoto(UIImage *image) {
     }];
 }
 static int CFByteCompare(const void *a,const void *b){return *(const unsigned char *)a-*(const unsigned char *)b;}
-CFPhotoCutout *CFCutoutPhoto(UIImage *image, CGFloat threshold, NSError **error) {
+static CFPhotoCutout *CFCutout(UIImage *image, CGFloat threshold, BOOL portrait, NSError **error) {
     const int w=640,h=480,n=w*h;
     unsigned char *rgba=calloc(n,4),*seen=calloc(n,1);int *queue=malloc(n*sizeof(int)),*largest=malloc(n*sizeof(int));
     if(!rgba||!seen||!queue||!largest){free(rgba);free(seen);free(queue);free(largest);CFPhotoError(error,@"Не хватает памяти для обработки фотографии");return nil;}
@@ -23,7 +23,7 @@ CFPhotoCutout *CFCutoutPhoto(UIImage *image, CGFloat threshold, NSError **error)
     unsigned char edges[3][80];int background[3];
     for(int i=0;i<80;i++){
         int x=(i%20)*(w-1)/19,y=(i%20)*(h-1)/19;
-        int p=i<20?x:i<40?(h-1)*w+x:i<60?y*w:y*w+w-1;
+        int p=i<20?x:i<40?(portrait?x:(h-1)*w+x):i<60?y*w:y*w+w-1;
         for(int c=0;c<3;c++)edges[c][i]=rgba[p*4+c];
     }
     for(int c=0;c<3;c++){qsort(edges[c],80,1,CFByteCompare);background[c]=edges[c][40];}
@@ -46,16 +46,18 @@ CFPhotoCutout *CFCutoutPhoto(UIImage *image, CGFloat threshold, NSError **error)
     for(int i=0;i<count;i++){int p=largest[i],x=p%w,y=p/w;seen[p]=1;x0=MIN(x0,x);x1=MAX(x1,x);y0=MIN(y0,y);y1=MAX(y1,y);}
     NSString *failure=nil;
     if(count<n*.006)failure=@"Фигурка не найдена. Нужен контрастный однотонный фон. Попробуйте уменьшить отделение фона.";
-    else if(x0<3||y0<3||x1>w-4||y1>h-4)failure=@"Фигурка касается края. Отодвиньте камеру: голова, ноги, руки и хвост должны целиком попасть в кадр.";
+    else if(x0<3||y0<3||x1>w-4||(!portrait&&y1>h-4))failure=@"Фигурка касается края. Отодвиньте камеру: голова, ноги, руки и хвост должны целиком попасть в кадр.";
     CFPhotoCutout *result=nil;
     if(!failure){
         long foot=0,feet=0;for(int i=0;i<count;i++){int p=largest[i];if(p/w>y1-MAX(2,(y1-y0)/16)){foot+=p%w;feet++;}}
         for(int p=0;p<n;p++)if(!seen[p])memset(rgba+p*4,0,4);
         CGImageRef cut=CGBitmapContextCreateImage(context);result=[CFPhotoCutout new];result.image=[UIImage imageWithCGImage:cut];CGImageRelease(cut);
         result.bounds=CGRectMake(x0,y0,x1-x0+1,y1-y0+1);result.foot=feet?(CGFloat)foot/feet:(x0+x1)/2.;
-    }else CFPhotoError(error,failure);
+    }else CFPhotoError(error,portrait&&count>=n*.006?@"Оставьте запас над головой и по бокам. Плечи можно обрезать снизу.":failure);
     CGContextRelease(context);CGColorSpaceRelease(colors);free(rgba);free(seen);free(back);free(queue);free(largest);return result;
 }
+CFPhotoCutout *CFCutoutPhoto(UIImage *image,CGFloat threshold,NSError **error){return CFCutout(image,threshold,NO,error);}
+CFPhotoCutout *CFCutoutPortrait(UIImage *image,CGFloat threshold,NSError **error){return CFCutout(image,threshold,YES,error);}
 UIImage *CFNormalizePhoto(CFPhotoCutout *cutout,CGFloat referenceScale,CGFloat referenceHead,NSDictionary *alignment,BOOL handheld,BOOL portrait,NSError **error){
     CGFloat head=[alignment[@"headWidth"] doubleValue];
     if(handheld&&!portrait&&(head<8||referenceHead<8)){CFPhotoError(error,@"Отметьте левый и правый края головы: это линейка для съёмки с рук.");return nil;}

@@ -7,6 +7,7 @@ NS_ASSUME_NONNULL_BEGIN
 @end
 UIImage *CFCanonicalPhoto(UIImage *image);
 CFPhotoCutout *_Nullable CFCutoutPhoto(UIImage *image, CGFloat threshold, NSError **error);
+CFPhotoCutout *_Nullable CFCutoutPortrait(UIImage *image, CGFloat threshold, NSError **error);
 UIImage *_Nullable CFNormalizePhoto(CFPhotoCutout *cutout, CGFloat referenceScale, CGFloat referenceHead,
                                     NSDictionary *alignment, BOOL handheld, BOOL portrait, NSError **error);
 NS_ASSUME_NONNULL_END

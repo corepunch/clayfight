@@ -1,5 +1,6 @@
 #import "NativeHost.h"
 #import "PhotoProcessing.h"
+#import "PoseGuideView.h"
 #import <AVFoundation/AVFoundation.h>
 #import <AVKit/AVKit.h>
 #import <PhotosUI/PhotosUI.h>
@@ -9,40 +10,6 @@ static UIColor *CFGold(void){return [UIColor colorWithRed:.92 green:.69 blue:.35
 static NSString *CFDraft(void){return [CFStoragePath() stringByAppendingPathComponent:@"capture-draft"];}
 static NSDictionary *CFDefaultAlignment(void){return @{@"zoom":@100,@"shift":@0,@"threshold":@38,@"headWidth":@0};}
 static UIButton *CFButton(NSString *title,id target,SEL action){UIButton *b=[UIButton buttonWithType:UIButtonTypeSystem];[b setTitle:title forState:UIControlStateNormal];b.tintColor=CFGold();b.backgroundColor=[UIColor colorWithWhite:.16 alpha:1];b.layer.cornerRadius=10;b.titleLabel.font=[UIFont systemFontOfSize:15 weight:UIFontWeightSemibold];[b.heightAnchor constraintGreaterThanOrEqualToConstant:48].active=YES;[b addTarget:target action:action forControlEvents:UIControlEventTouchUpInside];return b;}
-
-@interface CFGuideView : UIView
-@property NSString *pose;
-@end
-@implementation CFGuideView
-- (void)drawRect:(CGRect)rect {
-    CGContextRef c=UIGraphicsGetCurrentContext();CGContextSaveGState(c);CGContextScaleCTM(c,rect.size.width/640,rect.size.height/480);
-    CGContextSetStrokeColorWithColor(c,UIColor.whiteColor.CGColor);CGContextSetLineWidth(c,2);CGFloat dash[]={8,8};CGContextSetLineDash(c,0,dash,2);
-    CGContextMoveToPoint(c,22,430);CGContextAddLineToPoint(c,618,430);CGContextMoveToPoint(c,22,50);CGContextAddLineToPoint(c,618,50);CGContextStrokePath(c);CGContextSetLineDash(c,0,NULL,0);
-    NSString *p=self.pose;BOOL crouch=[p isEqual:@"crouch"];
-    if([p isEqual:@"portrait"]){CGContextTranslateCTM(c,-435,-145);CGContextScaleCTM(c,2.35,2.35);}
-    else if([p isEqual:@"down"]){CGContextTranslateCTM(c,320,330);CGContextRotateCTM(c,1.43);CGContextScaleCTM(c,.77,.77);CGContextTranslateCTM(c,-320,-270);}
-    else{CGContextTranslateCTM(c,64,86);CGContextScaleCTM(c,.8,.8);}
-    CGFloat hy=crouch?225:125,shoulder=hy+55,hips=crouch?355:300;
-    UIBezierPath *body=[UIBezierPath bezierPath];[body moveToPoint:CGPointMake(280,shoulder)];[body addQuadCurveToPoint:CGPointMake(279,hips) controlPoint:CGPointMake(245,shoulder+70)];[body addLineToPoint:CGPointMake(350,hips)];[body addQuadCurveToPoint:CGPointMake(365,shoulder) controlPoint:CGPointMake(390,shoulder+65)];[body closePath];[[UIColor colorWithWhite:1 alpha:.08]setFill];[body fill];[UIColor.whiteColor setStroke];body.lineWidth=3;[body stroke];
-    CGPoint arms[]={ {250,shoulder+85},{300,shoulder+30},{378,shoulder+25},{420,shoulder+10} },legs[]={ {260,410},{370,410} };
-    if([p isEqual:@"breathe"]){arms[1]=CGPointMake(290,shoulder+15);arms[3]=CGPointMake(425,shoulder);}
-    if([p isEqual:@"punch1"]){arms[0]=CGPointMake(225,shoulder+55);arms[1]=CGPointMake(210,shoulder-5);}
-    if([p isEqual:@"punch2"]){arms[2]=CGPointMake(410,shoulder+4);arms[3]=CGPointMake(510,shoulder-5);}
-    if([p isEqual:@"kick"])legs[1]=CGPointMake(490,305);
-    if([p isEqual:@"walk1"]||[p isEqual:@"walk3"]){legs[0]=CGPointMake([p isEqual:@"walk1"]?235:400,410);legs[1]=CGPointMake([p isEqual:@"walk1"]?405:240,410);}
-    if([p isEqual:@"walk2"]||[p isEqual:@"walk4"]){legs[0]=CGPointMake(295,[p isEqual:@"walk2"]?410:380);legs[1]=CGPointMake(340,[p isEqual:@"walk2"]?380:410);}
-    if([p isEqual:@"jump"]){legs[0]=CGPointMake(260,355);legs[1]=CGPointMake(390,350);}
-    if([p isEqual:@"block"]){arms[1]=CGPointMake(335,hy-10);arms[3]=CGPointMake(390,hy-15);}
-    if([p isEqual:@"hit"]){arms[0]=CGPointMake(205,shoulder+25);arms[1]=CGPointMake(205,shoulder-40);arms[3]=CGPointMake(455,shoulder+70);}
-    if([p isEqual:@"win"]){arms[0]=CGPointMake(230,hy+5);arms[1]=CGPointMake(245,hy-60);arms[2]=CGPointMake(405,hy+5);arms[3]=CGPointMake(420,hy-60);}
-    CGPoint origins[]={{291,hips},{344,hips},{280,shoulder+5},{365,shoulder+5}};
-    CGPoint bends[]={{285,hips+60},{365,hips+55},arms[0],arms[2]},ends[]={legs[0],legs[1],arms[1],arms[3]};
-    for(int i=0;i<4;i++){
-        UIBezierPath *limb=[UIBezierPath bezierPath];[limb moveToPoint:origins[i]];[limb addQuadCurveToPoint:ends[i] controlPoint:bends[i]];limb.lineCapStyle=kCGLineCapRound;limb.lineWidth=30;[UIColor.whiteColor setStroke];[limb stroke];limb.lineWidth=24;[[UIColor colorWithWhite:.45 alpha:1]setStroke];[limb stroke];
-    }
-    UIBezierPath *head=[UIBezierPath bezierPath];[head moveToPoint:CGPointMake(286,hy+16)];[head addQuadCurveToPoint:CGPointMake(309,hy-43) controlPoint:CGPointMake(270,hy-35)];[head addLineToPoint:CGPointMake(305,hy-66)];[head addLineToPoint:CGPointMake(330,hy-44)];[head addQuadCurveToPoint:CGPointMake(379,hy-12) controlPoint:CGPointMake(372,hy-49)];[head addLineToPoint:CGPointMake(403,hy+4)];[head addQuadCurveToPoint:CGPointMake(369,hy+27) controlPoint:CGPointMake(403,hy+29)];[head addLineToPoint:CGPointMake(365,hy+58)];[head addLineToPoint:CGPointMake(299,hy+58)];[head closePath];[UIColor.whiteColor setStroke];head.lineWidth=3;[head stroke];[UIColor.whiteColor setFill];[[UIBezierPath bezierPathWithOvalInRect:CGRectMake(357,hy-15,10,10)]fill];CGContextRestoreGState(c);
-}
-@end
 
 @interface CFCaptureController () <AVCapturePhotoCaptureDelegate,AVCaptureFileOutputRecordingDelegate,PHPickerViewControllerDelegate,UITextFieldDelegate>
 @property NSArray<NSDictionary *> *poses;
@@ -92,11 +59,11 @@ static UIButton *CFButton(NSString *title,id target,SEL action){UIButton *b=[UIB
     self.mode=[[UISegmentedControl alloc]initWithItems:@[@"На подставке",@"С рук"]];self.mode.selectedSegmentIndex=0;[self.mode addTarget:self action:@selector(modeChanged) forControlEvents:UIControlEventValueChanged];[self.stack addArrangedSubview:self.mode];
     self.stepLabel=[self label:@"" size:23];self.stepLabel.accessibilityIdentifier=@"capture-step";[self.stack addArrangedSubview:self.stepLabel];
     self.preview=[UIView new];self.preview.backgroundColor=[UIColor colorWithWhite:.18 alpha:1];self.preview.clipsToBounds=YES;self.preview.layer.cornerRadius=12;self.preview.accessibilityIdentifier=@"native-camera-preview";[self.stack addArrangedSubview:self.preview];[self.preview.heightAnchor constraintEqualToAnchor:self.preview.widthAnchor multiplier:.75].active=YES;
-    self.imageView=[UIImageView new];self.imageView.contentMode=UIViewContentModeScaleAspectFit;[self.preview addSubview:self.imageView];self.guide=[CFGuideView new];self.guide.backgroundColor=UIColor.clearColor;self.guide.alpha=.48;self.guide.userInteractionEnabled=NO;[self.preview addSubview:self.guide];[self.preview addGestureRecognizer:[[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(markTap:)]];
+    self.imageView=[UIImageView new];self.imageView.contentMode=UIViewContentModeScaleAspectFit;[self.preview addSubview:self.imageView];self.guide=[CFGuideView new];self.guide.backgroundColor=UIColor.clearColor;self.guide.alpha=.72;self.guide.userInteractionEnabled=NO;[self.preview addSubview:self.guide];[self.preview addGestureRecognizer:[[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(markTap:)]];
     self.hint=[self label:@"" size:15];[self.stack addArrangedSubview:self.hint];
     self.cameraButton=CFButton(@"Включить камеру",self,@selector(startCamera));self.photoButton=CFButton(@"Снимок",self,@selector(takePhoto));self.videoButton=CFButton(@"Видео · 3 сек",self,@selector(recordVideo));[self.stack addArrangedSubview:[self row:@[self.cameraButton,self.photoButton]]];[self.stack addArrangedSubview:[self row:@[self.videoButton,CFButton(@"Выбрать фото / видео",self,@selector(importMedia))]]];
     self.headButton=CFButton(@"Отметить ширину головы",self,@selector(markHead));[self.stack addArrangedSubview:self.headButton];self.headStatus=[self label:@"" size:13];[self.stack addArrangedSubview:self.headStatus];
-    self.opacity=[self slider:@"Видимость силуэта" min:0 max:1 value:.48 action:@selector(opacityChanged)];
+    self.opacity=[self slider:@"Видимость силуэта" min:0 max:1 value:.72 action:@selector(opacityChanged)];
     self.zoom=[self slider:@"Масштаб" min:50 max:200 value:100 action:@selector(alignmentChanged)];self.shift=[self slider:@"Влево / вправо" min:-120 max:120 value:0 action:@selector(alignmentChanged)];self.threshold=[self slider:@"Отделение фона" min:12 max:100 value:38 action:@selector(alignmentChanged)];
     [self.stack addArrangedSubview:[self row:@[CFButton(@"Переснять",self,@selector(retake)),CFButton(@"Исходник",self,@selector(showOriginal))]]];
     self.status=[self label:@"" size:14];self.status.textColor=CFGold();self.status.accessibilityIdentifier=@"capture-status";[self.stack addArrangedSubview:self.status];
@@ -184,13 +151,13 @@ static UIButton *CFButton(NSString *title,id target,SEL action){UIButton *b=[UIB
     if(self.currentImage)[self render];
 }
 - (void)render {
-    if(!self.currentImage)return;self.imageView.hidden=NO;self.acceptButton.enabled=NO;NSError *error;CFPhotoCutout *cut=CFCutoutPhoto(self.currentImage,self.threshold.value,&error);if(!cut){self.imageView.image=self.currentImage;self.status.text=error.localizedDescription;return;}
+    if(!self.currentImage)return;self.imageView.hidden=NO;self.acceptButton.enabled=NO;NSError *error;BOOL portrait=[self.poses[self.step][@"id"]isEqual:@"portrait"];CFPhotoCutout *cut=portrait?CFCutoutPortrait(self.currentImage,self.threshold.value,&error):CFCutoutPhoto(self.currentImage,self.threshold.value,&error);if(!cut){self.imageView.image=self.currentImage;self.status.text=error.localizedDescription;return;}
     CFPhotoCutout *reference=cut;NSDictionary *standing=self.frames[@"stand"];
-    if(self.step!=0){if(!standing){self.imageView.image=self.currentImage;self.status.text=@"Сначала сохраните позу «Готовность»: она задаёт масштаб остальных поз.";return;}UIImage *source=CFCanonicalPhoto([UIImage imageWithContentsOfFile:[CFDraft() stringByAppendingPathComponent:standing[@"source"]]]);reference=CFCutoutPhoto(source,[standing[@"alignment"][@"threshold"]doubleValue],&error);}
+    if(self.step!=0&&!portrait){if(!standing){self.imageView.image=self.currentImage;self.status.text=@"Сначала сохраните позу «Готовность»: она задаёт масштаб остальных поз.";return;}UIImage *source=CFCanonicalPhoto([UIImage imageWithContentsOfFile:[CFDraft() stringByAppendingPathComponent:standing[@"source"]]]);reference=CFCutoutPhoto(source,[standing[@"alignment"][@"threshold"]doubleValue],&error);}
     if(!reference){self.status.text=error.localizedDescription;return;}
     CGFloat head=self.step==0?[self.alignment[@"headWidth"]doubleValue]:[standing[@"alignment"][@"headWidth"]doubleValue];
     UIImage *normalized=CFNormalizePhoto(cut,300/reference.bounds.size.height,head,self.alignment,self.mode.selectedSegmentIndex==1,[self.poses[self.step][@"id"]isEqual:@"portrait"],&error);
-    self.imageView.image=normalized?:self.currentImage;self.acceptButton.enabled=normalized!=nil;self.status.text=normalized?@"Проверьте контур, глаза и пальцы. Ноги выровнены по линии опоры.":error.localizedDescription;
+    self.imageView.image=normalized?:self.currentImage;self.acceptButton.enabled=normalized!=nil;self.status.text=normalized?(portrait?@"Проверьте лицо и рога. Этот кадр станет портретом на экране выбора бойца.":@"Проверьте контур, глаза и пальцы. Ноги выровнены по линии опоры."):error.localizedDescription;
 }
 - (void)markHead {if(!self.currentImage){self.status.text=@"Сначала сделайте снимок.";return;}self.headPoints=[NSMutableArray array];self.imageView.hidden=NO;self.imageView.image=self.currentImage;self.acceptButton.enabled=NO;self.status.text=@"Коснитесь левого и правого края головы без рогов.";[self.scroll scrollRectToVisible:[self.preview convertRect:self.preview.bounds toView:self.scroll] animated:YES];}
 - (void)markTap:(UITapGestureRecognizer *)tap {
@@ -239,7 +206,7 @@ static UIButton *CFButton(NSString *title,id target,SEL action){UIButton *b=[UIB
         [fm createDirectoryAtPath:photos withIntermediateDirectories:YES attributes:nil error:&error];
         CFPhotoCutout *standing=CFCutoutPhoto(CFCanonicalPhoto([UIImage imageWithContentsOfFile:[CFDraft() stringByAppendingPathComponent:frames[@"stand"][@"source"]]]),[frames[@"stand"][@"alignment"][@"threshold"]doubleValue],&error);
         CGFloat scale=standing?300/standing.bounds.size.height:0,head=[frames[@"stand"][@"alignment"][@"headWidth"]doubleValue];
-        for(NSDictionary *pose in self.poses){if(error)break;NSString *key=pose[@"id"];NSDictionary *frame=frames[key];UIImage *raw=CFCanonicalPhoto([UIImage imageWithContentsOfFile:[CFDraft() stringByAppendingPathComponent:frame[@"source"]]]);CFPhotoCutout *cut=CFCutoutPhoto(raw,[frame[@"alignment"][@"threshold"]doubleValue],&error);if(!cut)break;UIImage *normalized=CFNormalizePhoto(cut,scale,head,frame[@"alignment"],handheld,[key isEqual:@"portrait"],&error);if(!normalized)break;[UIImagePNGRepresentation(normalized)writeToFile:[photos stringByAppendingPathComponent:[key stringByAppendingPathExtension:@"png"]] options:NSDataWritingAtomic error:&error];}
+        for(NSDictionary *pose in self.poses){if(error)break;NSString *key=pose[@"id"];NSDictionary *frame=frames[key];UIImage *raw=CFCanonicalPhoto([UIImage imageWithContentsOfFile:[CFDraft() stringByAppendingPathComponent:frame[@"source"]]]);CFPhotoCutout *cut=[key isEqual:@"portrait"]?CFCutoutPortrait(raw,[frame[@"alignment"][@"threshold"]doubleValue],&error):CFCutoutPhoto(raw,[frame[@"alignment"][@"threshold"]doubleValue],&error);if(!cut)break;UIImage *normalized=CFNormalizePhoto(cut,scale,head,frame[@"alignment"],handheld,[key isEqual:@"portrait"],&error);if(!normalized)break;[UIImagePNGRepresentation(normalized)writeToFile:[photos stringByAppendingPathComponent:[key stringByAppendingPathExtension:@"png"]] options:NSDataWritingAtomic error:&error];}
         if(!error)[[self creatureText:name]writeToFile:[staging stringByAppendingPathComponent:@"fighter.txt"] atomically:YES encoding:NSUTF8StringEncoding error:&error];
         if(!error)[fm copyItemAtPath:[CFDraft() stringByAppendingPathComponent:@"sources"] toPath:[staging stringByAppendingPathComponent:@"sources"] error:&error];
         if(!error)[@{@"name":name,@"handheld":@(handheld),@"frames":frames}writeToFile:[staging stringByAppendingPathComponent:@"capture.plist"] atomically:YES];
