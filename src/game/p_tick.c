@@ -14,7 +14,10 @@ void P_SetupRound(fighterdef_t *defs[2], const int palettes[2], stage_t *stage, 
     P_SpawnFighter(&level.fighters[1], defs[1], 1, ARENA_WIDTH / 2 + 70, palettes[1]);
     level.stage = stage;
     level.camx = (ARENA_WIDTH - VIEWWIDTH) / 2;
-    level.time = options.seconds * TICRATE;
+    level.time = gamemode == GM_TRAINING ? -1 : options.seconds * TICRATE;
+    if (gamemode == GM_TUG) {
+        for (int i = 0; i < 2; i++) level.fighters[i].health = level.fighters[i].shownhealth = MAX_HEALTH / 2;
+    }
     level.phase = PH_INTRO;
     level.winner = -1;
     level.round = round;
@@ -54,12 +57,21 @@ void P_Ticker(void)
     P_FighterThinker(b);
     P_SeparateFighters(a, b);
     if (controlled) { // look first, then apply: a trade hits both ways
+        int olda = a->health, oldb = b->health;
         hit_t ab, ba;
         bool hitb = P_AttackLands(a, b, &ab), hita = P_AttackLands(b, a, &ba);
         if (hitb)
             P_ApplyHit(a, b, &ab);
         if (hita)
             P_ApplyHit(b, a, &ba);
+        if (gamemode == GM_TUG) {
+            int share = CLAMP(olda - (olda - a->health) + (oldb - b->health), 0, MAX_HEALTH);
+            a->health = share; b->health = MAX_HEALTH - share;
+            a->dead = a->health == 0; b->dead = b->health == 0;
+        } else if (gamemode == GM_TRAINING) {
+            a->health = b->health = MAX_HEALTH;
+            a->dead = b->dead = false;
+        }
     }
     P_RunParticles();
     P_MoveCamera(a, b);

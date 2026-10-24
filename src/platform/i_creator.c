@@ -41,7 +41,7 @@ bool I_StartCreator(const char *creatures, const char *data)
     if (!child) {
         int fd = open("build/capture.log", O_CREAT | O_TRUNC | O_WRONLY, 0600);
         if (fd >= 0) { dup2(fd, STDOUT_FILENO); dup2(fd, STDERR_FILENO); close(fd); }
-        execlp("python3", "python3", "tools/capture_server.py", "--port", "0", "--ready", readyfile,
+        execlp("python3", "python3", "tools/capture_server.py", "--port", "8765", "--ready", readyfile,
                "--creatures", creatures, "--data", data, (char *)NULL);
         _exit(127);
     }

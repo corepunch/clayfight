@@ -21,6 +21,7 @@ typedef enum {
     GS_MAP,
     GS_CONTINUE,
     GS_ENDING,
+    GS_RESULTS,
 } gamestate_t;
 
 // ticcmd_t.buttons bits. Primal Rage's four buttons are HI/LO x QUICK/FIERCE.
@@ -480,6 +481,12 @@ extern gamestate_t gamestate;
 extern gameaction_t gameaction;
 extern bool paused;
 extern match_t match;
+typedef enum { GM_ARCADE, GM_TRAINING, GM_TUG, GM_ENDURANCE } gamemode_t;
+extern gamemode_t gamemode;
+void E_Start(fighterdef_t *teams[2][4], const bool cpu[2]);
+void E_MatchOver(int winner);
+void E_Drawer(void);
+extern bool endurance;
 
 bool G_Responder(const event_t *ev);
 bool G_Binding(int key, int *player, int *bit); // key -> player + BT_ bit
@@ -506,12 +513,14 @@ void C_SetupFinal(void);
 typedef struct {
     int rounds, seconds, difficulty, credits;
     bool sound;
+    int volume;
 } options_t;
 extern options_t options;
 void M_LoadOptions(void);
 void M_SaveOptions(void);
 void M_StartMenu(void);
 void M_OpenOptions(void);
+void M_OpenStart(void);
 void M_DrawArt(const char *file, int frame, int x, int y, float scale, int flags);
 void M_Background(const char *heading);
 void M_DrawCreature(const fighterdef_t *d, int x, int y, int w, int h, bool mirror);

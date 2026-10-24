@@ -7,6 +7,7 @@ gamestate_t gamestate = GS_TITLE;
 gameaction_t gameaction;
 bool paused;
 match_t match;
+gamemode_t gamemode;
 
 static const struct {
     int key, player, bit;
@@ -54,7 +55,7 @@ void G_ClearInput(void) { memset(held, 0, sizeof held); }
 bool G_Responder(const event_t *ev)
 {
     if (ev->type == ev_keydown && gamestate == GS_FIGHT) {
-        if (paused && ev->key == 'q') { C_Abandon(); M_StartMenu(); return true; }
+        if (paused && ev->key == 'q') { C_Abandon(); endurance = false; M_StartMenu(); return true; }
         if (ev->key == '`') { // debug: show hit boxes
             r_showboxes = !r_showboxes;
             return true;
@@ -110,6 +111,7 @@ void G_Ticker(void)
         P_CpuCmd(b, a, &b->cmd);
     else
         G_BuildTiccmd(1, &b->cmd);
+    if (gamemode == GM_TRAINING) b->cmd.buttons = 0;
     P_Ticker();
 
     if (level.phase != PH_OVER)
@@ -118,7 +120,7 @@ void G_Ticker(void)
         match.wins[level.winner]++;
     I_Log("round %d: winner %d, health %d/%d, %d s left", match.round, level.winner,
           level.fighters[0].health, level.fighters[1].health, level.time / TICRATE);
-    int required = campaign.active && campaign.finalbattle ? 1 : options.rounds;
+    int required = endurance || (campaign.active && campaign.finalbattle) ? 1 : options.rounds;
     if (match.wins[0] >= required || match.wins[1] >= required || match.round >= required * 2 + 1) {
         gameaction = ga_matchover;
         return;

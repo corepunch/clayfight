@@ -39,6 +39,8 @@ static void D_Display(void)
     case GS_SELECT:
         SEL_Drawer();
         break;
+    case GS_RESULTS:
+        E_Drawer(); break;
     case GS_MAP: case GS_CONTINUE: case GS_ENDING:
         C_Drawer(); break;
     case GS_CREATE:
@@ -59,7 +61,7 @@ static void D_RunTic(void)
     I_StartTic();
     responder_t list[2] = {G_Responder, NULL};
     int n = 1;
-    if (gamestate == GS_TITLE || gamestate == GS_MENU)
+    if (gamestate == GS_TITLE || gamestate == GS_MENU || gamestate == GS_RESULTS)
         list[n++] = M_Responder;
     else if (gamestate == GS_SELECT)
         list[n++] = SEL_Responder;
@@ -77,6 +79,7 @@ static void D_RunTic(void)
     case GS_SELECT:
         SEL_Ticker();
         break;
+    case GS_RESULTS: break;
     case GS_MAP: case GS_CONTINUE: case GS_ENDING:
         C_Ticker(); break;
     case GS_CREATE:
@@ -87,7 +90,8 @@ static void D_RunTic(void)
     }
     if (gameaction == ga_matchover) {
         gameaction = ga_nothing;
-        if (campaign.active) C_MatchOver(match.wins[0] >= (campaign.finalbattle ? 1 : options.rounds));
+        if (endurance) E_MatchOver(match.wins[0] == match.wins[1] ? 2 : match.wins[0] > match.wins[1] ? 0 : 1);
+        else if (campaign.active) C_MatchOver(match.wins[0] >= (campaign.finalbattle ? 1 : options.rounds));
         else SEL_Start();
     }
 }
@@ -198,6 +202,8 @@ int main(int argc, char **argv)
         if (!C_Start(D_FindFighter(M_ParmValue("-hero", "boxer")))) I_Error("Conquest needs all seven original fighters");
     } else if (!strcasecmp(M_ParmValue("-warp", ""), "menu")) {
         M_StartMenu();
+    } else if (!strcasecmp(M_ParmValue("-warp", ""), "start")) {
+        M_OpenStart();
     } else if (!strcasecmp(M_ParmValue("-warp", ""), "options")) {
         M_OpenOptions();
     } else {

@@ -36,7 +36,7 @@ async function openDB() {
 }
 async function db(action,value) {
   if(!storage) return null;
-  return new Promise((resolve,reject)=>{const tx=storage.transaction('draft',action==='get'?'readonly':'readwrite'), store=tx.objectStore('draft');let r=action==='get'?store.get('current'):action==='delete'?store.delete('current'):store.put(value,'current');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});
+  return new Promise((resolve,reject)=>{const tx=storage.transaction('draft',action==='get'?'readonly':'readwrite'), store=tx.objectStore('draft');let r=action==='get'?store.get('current'):action==='delete'?store.delete('current'):store.put(value,'current');let result;r.onsuccess=()=>{result=r.result;};r.onerror=()=>reject(r.error);tx.oncomplete=()=>resolve(result);tx.onabort=()=>reject(tx.error||new Error('Не удалось сохранить черновик'));});
 }
 async function saveDraft() {
   try { await db('put',{name:draftName,mode,frames,step,version:1}); $('draft-status').textContent=storage?'Черновик сохранён на этом устройстве.':'Черновик хранится только до закрытия страницы.'; }
@@ -154,7 +154,7 @@ $('start').onclick=async()=>{
   if(!/^[A-Z][A-Z0-9_]{0,15}$/.test(name)){message('setup-status','Введите имя латинскими буквами, например GROM.',true);$('name').focus();return;}
   if(!poses.length)return;draftName=name;mode=document.querySelector('input[name=mode]:checked').value;frames={};await saveDraft();await enterStep(0);
 };
-$('resume').onclick=async()=>{const saved=await db('get');if(saved){draftName=saved.name;mode=saved.mode;frames=saved.frames;await enterStep(saved.step||0);}};
+$('resume').onclick=async()=>{const saved=await db('get');if(saved){draftName=saved.name;mode=saved.mode;frames=saved.frames;const missing=poses.findIndex(p=>!frames[p.id]);if(missing<0)await review();else await enterStep(missing);}};
 $('camera').onclick=camera;
 $('snap').onclick=async()=>{try{await setSource(snapshot($('live')));}catch(e){message('status',e.message,true);}};
 $('photo').onchange=async e=>{

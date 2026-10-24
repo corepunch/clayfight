@@ -28,6 +28,7 @@ int main(int argc, char **argv)
     M_StartTitle(); press(M_Responder, KEY_ENTER); assert(gamestate == GS_MENU);
     press(M_Responder, KEY_DOWNARROW); press(M_Responder, KEY_ENTER); assert(gamestate == GS_CREATE);
     press(M_CreateResponder, KEY_ESCAPE); assert(gamestate == GS_MENU);
+    press(M_Responder, KEY_ENTER); assert(gamestate == GS_MENU);
     press(M_Responder, KEY_ENTER); assert(gamestate == GS_SELECT);
     press(SEL_Responder, KEY_ENTER);
     for (int i = 0; i < 50; i++) SEL_Ticker();
@@ -71,6 +72,37 @@ int main(int argc, char **argv)
     SEL_Start(); press(SEL_Responder, KEY_ENTER);
     for (int i = 0; i < 50; i++) SEL_Ticker();
     assert(gamestate == GS_MAP);
-    I_Shutdown(); puts("flow: menus, 7 lands, continues, 7 final rivals, victory, defeat and P2 reset passed");
+    // PC Start menu modes: choose a training dummy using P1 controls.
+    M_OpenStart(); press(M_Responder, KEY_DOWNARROW); press(M_Responder, KEY_ENTER);
+    assert(gamemode == GM_TRAINING && gamestate == GS_SELECT);
+    press(SEL_Responder, KEY_ENTER); press(SEL_Responder, 'd'); press(SEL_Responder, KEY_ENTER);
+    for (int i = 0; i < 50; i++) SEL_Ticker();
+    assert(gamestate == GS_FIGHT && level.time == -1);
+    level.phase = PH_FIGHT; level.fighters[0].health = level.fighters[1].health = 1;
+    P_Ticker(); assert(level.fighters[0].health == MAX_HEALTH && level.fighters[1].health == MAX_HEALTH);
+    for (int i = 0; i < 4000; i++) G_Ticker();
+    assert(gamestate == GS_FIGHT && level.phase == PH_FIGHT && gameaction == ga_nothing);
+    // Tug of War keeps a single shared pool over an actual CPU match.
+    C_Abandon(); gamemode = GM_TUG;
+    bool bothcpu[2] = {true, true}; G_InitNew(roster[0], roster[2], bothcpu, &stages[0]);
+    assert(level.fighters[0].health == 50 && level.fighters[1].health == 50);
+    for (int i = 0; i < 3000 && gameaction == ga_nothing; i++) {
+        G_Ticker(); assert(level.fighters[0].health + level.fighters[1].health == MAX_HEALTH);
+    }
+    gameaction = ga_nothing;
+    // Endurance selects four fighters per side and keeps the winner's health.
+    gamemode = GM_ENDURANCE; SEL_Start();
+    for (int i = 0; i < 4; i++) { press(SEL_Responder, KEY_ENTER); press(SEL_Responder, 'd'); }
+    for (int i = 0; i < 50; i++) SEL_Ticker();
+    assert(endurance && gamestate == GS_FIGHT && !campaign.active);
+    for (int i = 0; i < 4; i++) {
+        level.fighters[0].health = 80 - i * 10;
+        winround(0); assert(gameaction == ga_matchover); gameaction = ga_nothing;
+        E_MatchOver(0);
+        if (i < 3) assert(endurance && level.fighters[0].health == 80 - i * 10);
+    }
+    assert(!endurance && gamestate == GS_RESULTS);
+    E_Drawer(); press(M_Responder, KEY_ENTER); assert(gamestate == GS_MENU);
+    I_Shutdown(); puts("flow: menus, 7 lands, continues, 7 final rivals, victory, defeat, P2 reset, training, tug of war and endurance passed");
     return 0;
 }
