@@ -14,6 +14,7 @@
 
 fighterdef_t *roster[MAXROSTER];
 int numroster;
+static char loadedpaths[MAXROSTER][600];
 
 #define MAXTOKENS 24
 
@@ -143,7 +144,7 @@ fighterdef_t *P_LoadCreature(const char *path)
     def->portrait = def->label = -1;
     def->altpalette = 1;
     photoset_t *photos = NULL; // photographed frames, processed at the end
-    char dir[512], backdrop[600] = "";
+    char dir[512], backdrop[600] = "", portraitpath[600] = "";
     int height = 84;
     bool photoart = false;
     snprintf(dir, sizeof dir, "%s", path);
@@ -295,6 +296,9 @@ fighterdef_t *P_LoadCreature(const char *path)
             if (ps.ntok < 2)
                 P_Fail(&ps, "backdrop needs a .png file");
             snprintf(backdrop, sizeof backdrop, "%s/%s", dir, ps.tok[1]);
+        } else if (!strcasecmp(cmd, "portrait")) {
+            if (ps.ntok < 2) P_Fail(&ps, "portrait needs a PNG file");
+            snprintf(portraitpath, sizeof portraitpath, "%s/%s", dir, ps.tok[1]);
         } else if (!strcasecmp(cmd, "prage")) {
             def->codeindex = (int)P_Num(&ps, 1);
         } else if (!strcasecmp(cmd, "palette")) { // palette N [alt M]
@@ -338,6 +342,12 @@ fighterdef_t *P_LoadCreature(const char *path)
         snprintf(base, sizeof base, "S04%s.GRA", def->prefix);
         def->base = W_LoadGra(base);
     }
+    if (portraitpath[0]) {
+        photoset_t *port = W_PhotoBegin("portrait");
+        W_PhotoFrame(port, portraitpath);
+        W_PhotoFinish(port, NULL, 0, 100);
+        def->photoport = W_PhotoGra(port);
+    }
     P_FinishFighter(def);
     return def;
 }
@@ -374,7 +384,7 @@ static void P_FindCreatures(const char *dir, int depth, char **names, int *n)
     closedir(d);
 }
 
-void P_LoadRoster(const char *dir)
+void P_RefreshRoster(const char *dir)
 {
     char *names[MAXROSTER];
     int n = 0;
@@ -383,8 +393,30 @@ void P_LoadRoster(const char *dir)
         I_Error("No creature files in %s.\nRun 'make creatures' to convert them from PRAGE.EXE.", dir);
     qsort(names, n, sizeof names[0], P_CompareNames);
     for (int i = 0; i < n; i++) {
-        roster[numroster++] = P_LoadCreature(names[i]);
+        bool loaded = false;
+        for (int j = 0; j < numroster; j++)
+            if (!strcmp(loadedpaths[j], names[i])) loaded = true;
+        if (!loaded && numroster < MAXROSTER) {
+            snprintf(loadedpaths[numroster], sizeof loadedpaths[0], "%s", names[i]);
+            roster[numroster++] = P_LoadCreature(names[i]);
+        }
         free(names[i]);
     }
     I_Log("P_LoadRoster: %d creatures from %s", numroster, dir);
+}
+
+static int P_RosterOrder(const void *a, const void *b)
+{
+    const fighterdef_t *x = *(fighterdef_t *const *)a, *y = *(fighterdef_t *const *)b;
+    int ix = x->codeindex < 0 ? 100 : x->codeindex;
+    int iy = y->codeindex < 0 ? 100 : y->codeindex;
+    return ix != iy ? ix - iy : strcasecmp(x->name, y->name);
+}
+
+void P_LoadRoster(const char *dir)
+{
+    P_RefreshRoster(dir);
+    // Preserve original seven-character order, then the clay roster.
+    // Paths stay in load order; refresh only uses them as a membership set.
+    qsort(roster, numroster, sizeof roster[0], P_RosterOrder);
 }

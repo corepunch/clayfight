@@ -14,7 +14,7 @@ void P_SetupRound(fighterdef_t *defs[2], const int palettes[2], stage_t *stage, 
     P_SpawnFighter(&level.fighters[1], defs[1], 1, ARENA_WIDTH / 2 + 70, palettes[1]);
     level.stage = stage;
     level.camx = (ARENA_WIDTH - VIEWWIDTH) / 2;
-    level.time = ROUND_TIME * TICRATE;
+    level.time = options.seconds * TICRATE;
     level.phase = PH_INTRO;
     level.winner = -1;
     level.round = round;

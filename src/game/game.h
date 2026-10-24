@@ -16,6 +16,8 @@ typedef enum {
     GS_TITLE,
     GS_SELECT,
     GS_FIGHT,
+    GS_MENU,
+    GS_CREATE,
 } gamestate_t;
 
 // ticcmd_t.buttons bits. Primal Rage's four buttons are HI/LO x QUICK/FIERCE.
@@ -153,6 +155,7 @@ typedef struct {
     char prefix[8]; // art files S04<prefix>*.GRA, voice S04<prefix>SD.GRA
     int codeindex; // character number in PRAGE.EXE (-script mode), -1 none
     int portrait, label; // S04SELMO.GRA frames: 5-frame portrait, name plate
+    gra_t *photoport; // photographed close-up, separate from the animation scale
     int palette, altpalette; // sub-palettes of the base art file
     bool facesleft; // which way the art faces
     float walkspeed, backspeed, jumpspeed;
@@ -166,12 +169,13 @@ typedef struct {
     int reach; // forward reach of the standing pose
 } fighterdef_t;
 
-#define MAXROSTER 16
+#define MAXROSTER 64
 extern fighterdef_t *roster[MAXROSTER];
 extern int numroster;
 
 // p_creature.c
 void P_LoadRoster(const char *dir);
+void P_RefreshRoster(const char *dir); // append newly published creatures
 fighterdef_t *P_LoadCreature(const char *path);
 
 // info.c
@@ -478,6 +482,24 @@ bool G_Responder(const event_t *ev);
 bool G_Binding(int key, int *player, int *bit); // key -> player + BT_ bit
 void G_InitNew(fighterdef_t *p1, fighterdef_t *p2, const bool cpu[2], stage_t *stage);
 void G_Ticker(void);
+void G_ClearInput(void);
+
+typedef struct {
+    int rounds, seconds, difficulty, credits;
+    bool sound;
+} options_t;
+extern options_t options;
+void M_LoadOptions(void);
+void M_SaveOptions(void);
+void M_StartMenu(void);
+void M_OpenOptions(void);
+void M_DrawArt(const char *file, int frame, int x, int y, float scale, int flags);
+void M_Background(const char *heading);
+void M_DrawCreature(const fighterdef_t *d, int x, int y, int w, int h, bool mirror);
+void M_Create(void);
+void M_CreateTicker(void);
+bool M_CreateResponder(const event_t *ev);
+void M_CreateDrawer(void);
 
 // --- sel_main.c: character select screen (cf. wi_stuff.h) ------------------
 void SEL_Start(void);

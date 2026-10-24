@@ -1,5 +1,6 @@
 // g_game.c -- game flow, input bindings and ticcmds (cf. g_game.c)
 
+#include <string.h>
 #include "game/game.h"
 
 gamestate_t gamestate = GS_TITLE;
@@ -48,9 +49,12 @@ bool G_Binding(int key, int *player, int *bit)
     return false;
 }
 
+void G_ClearInput(void) { memset(held, 0, sizeof held); }
+
 bool G_Responder(const event_t *ev)
 {
     if (ev->type == ev_keydown && gamestate == GS_FIGHT) {
+        if (paused && ev->key == 'q') { M_StartMenu(); return true; }
         if (ev->key == '`') { // debug: show hit boxes
             r_showboxes = !r_showboxes;
             return true;
@@ -89,6 +93,7 @@ void G_InitNew(fighterdef_t *p1, fighterdef_t *p2, const bool cpu[2], stage_t *s
     M_ClearRandom();
     P_SetupRound(match.defs, match.palettes, stage, 1);
     paused = false;
+    G_ClearInput();
     gamestate = GS_FIGHT;
 }
 
@@ -113,7 +118,7 @@ void G_Ticker(void)
         match.wins[level.winner]++;
     I_Log("round %d: winner %d, health %d/%d, %d s left", match.round, level.winner,
           level.fighters[0].health, level.fighters[1].health, level.time / TICRATE);
-    if (match.wins[0] >= ROUNDS_TO_WIN || match.wins[1] >= ROUNDS_TO_WIN || match.round >= 5) {
+    if (match.wins[0] >= options.rounds || match.wins[1] >= options.rounds || match.round >= options.rounds * 2 + 1) {
         gameaction = ga_matchover;
         return;
     }

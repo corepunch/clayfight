@@ -53,6 +53,7 @@ static float S_Sep(float x)
 
 void S_StartSound(sfxenum_t id, float x, float vol)
 {
+    if (!options.sound) return;
     if (!nvariants[id])
         return;
     I_StartSound(sfx[id][M_Random() % nvariants[id]], vol, S_Sep(x));
@@ -75,6 +76,7 @@ static voice_t *S_Voice(const char *prefix)
 
 void S_StartVoice(const char *prefix, int which, float x, float vol)
 {
+    if (!options.sound) return;
     voice_t *v = S_Voice(prefix);
     if (v && v->count)
         I_StartSound(&v->samples[which % v->count], vol, S_Sep(x));

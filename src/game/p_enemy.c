@@ -21,7 +21,7 @@ void P_CpuCmd(fighter_t *f, const fighter_t *opp, ticcmd_t *cmd)
     bool close = dist < f->def->reach + opp->def->reach + 16; // fronts nearly touching
 
     // guard against an incoming attack (sometimes too late)
-    if (opp->state->kind == K_ATTACK && dist < 140 && P_Random() < 150) {
+    if (opp->state->kind == K_ATTACK && dist < 140 && P_Random() < 60 + options.difficulty * 40) {
         cmd->buttons = away;
         if (opp->attack && opp->attack->level == LOW)
             cmd->buttons |= BT_DOWN;
@@ -43,7 +43,7 @@ void P_CpuCmd(fighter_t *f, const fighter_t *opp, ticcmd_t *cmd)
     if (close) {
         if (r < 120) {
             cmd->buttons = attacks[P_Random() % 5] | (P_Random() < 60 ? BT_DOWN : 0);
-            f->aiwait = 10 + (P_Random() & 15);
+            f->aiwait = (10 + (P_Random() & 15)) * (4 - options.difficulty) / 2;
         } else if (r < 170) {
             f->aiplan = away;
             f->aihold = 12 + (P_Random() & 15);

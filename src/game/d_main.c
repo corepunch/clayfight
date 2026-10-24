@@ -32,12 +32,15 @@ static int shotevery = 60, maxtics;
 static void D_Display(void)
 {
     switch (gamestate) {
+    case GS_MENU:
     case GS_TITLE:
         M_Drawer();
         break;
     case GS_SELECT:
         SEL_Drawer();
         break;
+    case GS_CREATE:
+        M_CreateDrawer(); break;
     case GS_FIGHT:
         R_RenderFight();
         ST_Drawer(match.wins);
@@ -54,19 +57,24 @@ static void D_RunTic(void)
     I_StartTic();
     responder_t list[2] = {G_Responder, NULL};
     int n = 1;
-    if (gamestate == GS_TITLE)
+    if (gamestate == GS_TITLE || gamestate == GS_MENU)
         list[n++] = M_Responder;
     else if (gamestate == GS_SELECT)
         list[n++] = SEL_Responder;
+    else if (gamestate == GS_CREATE)
+        list[n++] = M_CreateResponder;
     D_ProcessEvents(list, n);
 
     switch (gamestate) {
+    case GS_MENU:
     case GS_TITLE:
         M_Ticker();
         break;
     case GS_SELECT:
         SEL_Ticker();
         break;
+    case GS_CREATE:
+        M_CreateTicker(); break;
     case GS_FIGHT:
         G_Ticker();
         break;
@@ -151,6 +159,7 @@ int main(int argc, char **argv)
     I_InitGraphics(headless);
     W_Init(M_ParmValue("-data", "primalrage"));
     V_Init();
+    M_LoadOptions();
     P_LoadRoster(M_ParmValue("-creatures", "creatures"));
     if (M_CheckParm("-checkanims")) {
         char exepath[600];
@@ -178,6 +187,10 @@ int main(int argc, char **argv)
         G_InitNew(D_FindFighter(argv[p + 1]), D_FindFighter(argv[p + 2]), cpu, &stages[s]);
     } else if (!strcasecmp(M_ParmValue("-warp", ""), "select")) {
         SEL_Start();
+    } else if (!strcasecmp(M_ParmValue("-warp", ""), "menu")) {
+        M_StartMenu();
+    } else if (!strcasecmp(M_ParmValue("-warp", ""), "options")) {
+        M_OpenOptions();
     } else {
         M_StartTitle();
     }

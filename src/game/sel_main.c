@@ -6,6 +6,7 @@
 // in game code, so palettes are guessed (W_GuessPalette) and cached.
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <strings.h>
 
 #include "game/game.h"
@@ -30,7 +31,10 @@ void SEL_Start(void)
             if (!strcasecmp(roster[i]->name, "SAURON"))
                 cursor[0] = cursor[1] = i;
     }
+    P_RefreshRoster(M_ParmValue("-creatures", "creatures"));
+    joined[0] = true; joined[1] = false;
     chosen[0] = chosen[1] = false;
+    G_ClearInput();
     seltime = launch = 0;
     gamestate = GS_SELECT;
 }
@@ -48,6 +52,10 @@ static void SEL_DrawFrame(int frame, int x, int y, int flags, float scale)
 bool SEL_Responder(const event_t *ev)
 {
     int pl, bit;
+    if (ev->type == ev_keydown && (ev->key == KEY_ESCAPE || ev->key == PADKEY(0, PK_BACK))) {
+        M_StartMenu(); return true;
+    }
+    if (ev->type == ev_keydown && ev->key == 'c') { M_Create(); return true; }
     if (ev->type != ev_keydown || !G_Binding(ev->key, &pl, &bit))
         return false;
     if (!joined[pl]) {
@@ -59,10 +67,12 @@ bool SEL_Responder(const event_t *ev)
     }
     if (chosen[pl])
         return true;
-    if (bit & (BT_LEFT | BT_UP))
+    if (bit & BT_LEFT)
         cursor[pl] = (cursor[pl] + numroster - 1) % numroster;
-    if (bit & (BT_RIGHT | BT_DOWN))
+    if (bit & BT_RIGHT)
         cursor[pl] = (cursor[pl] + 1) % numroster;
+    if (bit & BT_UP) cursor[pl] = (cursor[pl] + numroster - MIN(7, numroster)) % numroster;
+    if (bit & BT_DOWN) cursor[pl] = (cursor[pl] + MIN(7, numroster)) % numroster;
     if ((bit & (BT_ATTACKS | BT_START)) && P_Playable(roster[cursor[pl]])) {
         chosen[pl] = true;
         S_StartSound(sfx_select, -1, 0.8f);
@@ -75,7 +85,7 @@ void SEL_Ticker(void)
     seltime++;
     // a lone player fights the CPU, which picks as soon as the player has
     if (chosen[0] && !joined[1] && !chosen[1]) {
-        int playable[16], n = 0;
+        int playable[MAXROSTER], n = 0;
         for (int i = 0; i < numroster; i++)
             if (P_Playable(roster[i]))
                 playable[n++] = i;
@@ -97,17 +107,17 @@ static void SEL_Box(int x, int y, int size, pixel_t c)
 }
 
 // A creature's stand pose, scaled to fit a w x h box, feet on its bottom edge.
-static void SEL_DrawCreature(const fighterdef_t *d, int x, int y, int w, int h, bool mirror)
+void M_DrawCreature(const fighterdef_t *d, int x, int y, int w, int h, bool mirror)
 {
     const state_t *st = &d->states[d->anims[ANIM_STAND].first];
-    patch_t *p = P_StatePatch(st);
+    patch_t *p = d->photoport ? W_Frame(d->photoport, 0) : P_StatePatch(st);
     if (!p)
         return;
     V_FillRect(x, y, w, h, 0xff101418);
     float sc = MIN((float)(w - 4) / p->w, (float)(h - 4) / p->h);
     bool flip = d->facesleft == !mirror; // face the middle of the screen
     int px = (int)(x + w / 2 + (flip ? -1 : 1) * (p->x - p->w / 2.f) * sc);
-    V_DrawPatchScaled(px, y + h - 2, p, &d->base->palettes[d->palette], flip ? V_FLIP : 0, sc, sc);
+    V_DrawPatchScaled(px, y + h - 2, p, (d->photoport ? &d->photoport->palettes[0] : &d->base->palettes[d->palette]), flip ? V_FLIP : 0, sc, sc);
 }
 
 void SEL_Drawer(void)
@@ -133,7 +143,7 @@ void SEL_Drawer(void)
         const fighterdef_t *d = roster[cursor[pl]];
         if (d->portrait < 0) { // no portrait art (photo creatures): show the creature itself
             int x = pl ? VIEWWIDTH - 6 - 110 : 6;
-            SEL_DrawCreature(d, x, 24, 110, 113, pl == 1);
+            M_DrawCreature(d, x, 24, 110, 113, pl == 1);
             V_DrawTextCentered(FONT_BIG, x + 55, 24 + 113 + 4, d->name);
             continue;
         }
@@ -148,21 +158,21 @@ void SEL_Drawer(void)
             V_DrawTextCentered(FONT_SMALL, x + p->w / 2, 74, "COMING SOON");
     }
 
-    // roster strip with cursors; cells shrink to fit everyone
-    const int cell = MIN(44, (VIEWWIDTH - 4) / numroster), size = cell - 4, y = VIEWHEIGHT - 44;
-    int x0 = (VIEWWIDTH - cell * numroster) / 2;
-    for (int i = 0; i < numroster; i++) {
-        int x = x0 + i * cell + 2;
+    // Seven original fighters remain together; clay portraits get a second row.
+    // Additional pages keep cells legible even after many creations.
+    int page = cursor[0] / 14, first = page * 14;
+    for (int i = first; i < MIN(first + 14, numroster); i++) {
+        int x = 14 + (i - first) % 7 * 42, y = 158 + (i - first) / 7 * 37;
         if (roster[i]->portrait >= 0)
-            SEL_DrawFrame(roster[i]->portrait, x, y, P_Playable(roster[i]) ? 0 : V_FADE, size / 110.f);
-        else
-            SEL_DrawCreature(roster[i], x, y, size, size, false);
+            M_DrawArt("S04SELMO.GRA", roster[i]->portrait, x, y, 0.28f, 0);
+        else M_DrawCreature(roster[i], x, y, 31, 31, false);
         for (int pl = 0; pl < 2; pl++) {
-            if (cursor[pl] != i || (!joined[pl] && !chosen[pl]) || (!chosen[pl] && (seltime & 8)))
-                continue;
-            SEL_Box(x - 2 + pl * 2, y - 2 + pl * 2, size + 2 - pl * 4, pl ? 0xff3070f0 : 0xfff04030);
+            if (cursor[pl] != i || (!joined[pl] && !chosen[pl]) || (!chosen[pl] && (seltime & 8))) continue;
+            SEL_Box(x - 2 + pl, y - 2 + pl, 35 - pl * 2, pl ? 0xff3070f0 : 0xfff04030);
         }
     }
-    if (chosen[0] && chosen[1])
-        V_DrawTextCentered(FONT_BIG, VIEWWIDTH / 2, 132, "FIGHT!");
+    char label[64];
+    snprintf(label, sizeof label, "C: CREATE FIGHTER    PAGE %d/%d", page + 1, (numroster + 13) / 14);
+    V_DrawTextCentered(FONT_SMALL, 160, 232, label);
+    if (chosen[0] && chosen[1]) V_DrawTextCentered(FONT_BIG, 160, 132, "FIGHT!");
 }
