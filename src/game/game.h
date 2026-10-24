@@ -18,6 +18,9 @@ typedef enum {
     GS_FIGHT,
     GS_MENU,
     GS_CREATE,
+    GS_MAP,
+    GS_CONTINUE,
+    GS_ENDING,
 } gamestate_t;
 
 // ticcmd_t.buttons bits. Primal Rage's four buttons are HI/LO x QUICK/FIERCE.
@@ -483,6 +486,22 @@ bool G_Binding(int key, int *player, int *bit); // key -> player + BT_ bit
 void G_InitNew(fighterdef_t *p1, fighterdef_t *p2, const bool cpu[2], stage_t *stage);
 void G_Ticker(void);
 void G_ClearInput(void);
+
+// Single-player conquest followed by the seven-opponent final gauntlet.
+typedef struct {
+    bool active, finalbattle, defeated;
+    fighterdef_t *hero, *opponents[7];
+    int order[7], conquered, finalindex, credits, health, enemyhealth, tics;
+} campaign_t;
+extern campaign_t campaign;
+bool C_Start(fighterdef_t *hero);
+void C_Abandon(void);
+void C_StartFight(void);
+void C_MatchOver(bool won);
+bool C_Responder(const event_t *ev);
+void C_Ticker(void);
+void C_Drawer(void);
+void C_SetupFinal(void);
 
 typedef struct {
     int rounds, seconds, difficulty, credits;

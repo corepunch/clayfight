@@ -26,7 +26,7 @@ void ST_Drawer(const int wins[2])
         const char *name = f->def->name;
         V_DrawText(FONT_SMALL, left ? x : x + BAR_W - V_TextWidth(FONT_SMALL, name), BAR_Y + BAR_H + 3, name);
 
-        for (int k = 0; k < options.rounds; k++) { // round win markers
+        for (int k = 0; k < (campaign.active && campaign.finalbattle ? 1 : options.rounds); k++) { // round win markers
             int mx = left ? x + BAR_W - 6 - k * 8 : x + 1 + k * 8;
             V_FillRect(mx, BAR_Y + BAR_H + 3, 5, 5, 0xff000000);
             if (wins[i] > k)
@@ -34,7 +34,8 @@ void ST_Drawer(const int wins[2])
         }
     }
     char clock[8];
-    snprintf(clock, sizeof clock, "%02d", (level.time + TICRATE - 1) / TICRATE);
+    if (level.time < 0) snprintf(clock, sizeof clock, "--");
+    else snprintf(clock, sizeof clock, "%02d", (level.time + TICRATE - 1) / TICRATE);
     V_DrawTextCentered(FONT_BIG, VIEWWIDTH / 2, 5, clock);
 }
 

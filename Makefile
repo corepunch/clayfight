@@ -24,7 +24,7 @@ creatures: creatures/primalrage/sauron.txt
 creatures/primalrage/sauron.txt: primalrage/PRAGE.EXE tools/pr2creature.py tools/extract_scripts.py
 	python3 -I tools/pr2creature.py primalrage creatures/primalrage
 
-check: all checkvideo
+check: all checkvideo checkflow
 	./clayfight -checkanims
 
 checkvideo: build/checkvideo
@@ -42,3 +42,11 @@ clean:
 	rm -rf build clayfight
 
 .PHONY: all clean creatures check checkvideo
+
+checkflow: build/checkflow
+	./build/checkflow
+
+build/checkflow: tests/flow.c $(filter-out build/game/d_main.o,$(OBJS)) $(HDRS)
+	$(CC) $(CFLAGS) -o $@ tests/flow.c $(filter-out build/game/d_main.o,$(OBJS)) $(LDLIBS)
+
+.PHONY: checkflow

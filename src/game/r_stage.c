@@ -18,6 +18,7 @@ stage_t stages[] = {
     {.file = "S04HIMAL.GRA", .name = "THE CLIFF"},
     {.file = "S04STONE.GRA", .name = "THE RUINS"},
     {.file = "S04JUNGL.GRA", .name = "THE HOLLOWS"},
+    {.file = "S04GRAVE.GRA", .name = "DINOSAUR GRAVEYARD"},
 };
 int numstages = sizeof stages / sizeof stages[0];
 

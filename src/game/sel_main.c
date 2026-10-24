@@ -94,7 +94,9 @@ void SEL_Ticker(void)
     }
     if (chosen[0] && chosen[1] && ++launch == LAUNCH_DELAY) {
         bool cpu[2] = {false, !joined[1]};
-        G_InitNew(roster[cursor[0]], roster[cursor[1]], cpu, &stages[M_Random() % numstages]);
+        if (!joined[1] && C_Start(roster[cursor[0]])) return;
+        C_Abandon();
+        G_InitNew(roster[cursor[0]], roster[cursor[1]], cpu, &stages[M_Random() % 7]);
     }
 }
 
