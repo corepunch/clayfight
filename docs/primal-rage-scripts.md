@@ -52,7 +52,8 @@ Through the converted creature files (and the same in `-script` mode):
 - root motion for lunges;
 - damage, stun-scaled hit reactions, strength (heavy moves knock down);
 - the game's own attack boxes, keyed by animation step;
-- each fighter's palette (sub-palette 3, from the game's object descriptors).
+- each fighter's palette (sub-palette 1 for Vertigo, 3 for the other six,
+  read from the game's player object descriptors).
 
 Native routines are bound by address to C functions in `p_script.c` (12 so
 far; no unknown calls remain in the core rows). The converter turns the ones
@@ -64,7 +65,7 @@ Still Clayfight's own logic:
 - jump physics;
 - hurt boxes (from sprite silhouettes);
 - CPU AI;
-- rounds, stage layout, select-screen palettes, sound triggers.
+- rounds, stage layout, unmapped menu palettes, sound triggers.
 
 Not wired yet: special moves (input tables are decoded; the handlers are
 native code), fatalities and victories that spawn objects, projectiles

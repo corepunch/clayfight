@@ -26,7 +26,7 @@ static void R_DrawFighter(const fighter_t *f, int camx)
         flags |= V_FLIP;
     if (f->flash & 2)
         flags |= V_FLASH;
-    V_DrawPatch((int)lroundf(f->x) - camx, FLOOR_Y - (int)lroundf(f->z), p, f->pal, flags);
+    V_DrawPatch((int)lroundf(f->x) - camx, FLOOR_Y - (int)lroundf(f->z) - P_SpriteLift(f), p, f->pal, flags);
 }
 
 static void R_Outline(const box_t *b, int camx, pixel_t color)

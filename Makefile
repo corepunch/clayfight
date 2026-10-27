@@ -24,7 +24,7 @@ creatures: creatures/primalrage/sauron.txt
 creatures/primalrage/sauron.txt: primalrage/PRAGE.EXE tools/pr2creature.py tools/extract_scripts.py
 	python3 -I tools/pr2creature.py primalrage creatures/primalrage
 
-check: all checkvideo checkflow checkcapture
+check: all checkvideo checkflow checkcapture checkretail
 	./clayfight -checkanims
 
 checkvideo: build/checkvideo
@@ -50,6 +50,14 @@ build/checkflow: tests/flow.c $(filter-out build/game/d_main.o,$(OBJS)) $(HDRS)
 	$(CC) $(CFLAGS) -o $@ tests/flow.c $(filter-out build/game/d_main.o,$(OBJS)) $(LDLIBS)
 
 .PHONY: checkflow
+
+checkretail: all build/checkretail
+	./build/checkretail
+
+build/checkretail: tests/retail.c $(filter-out build/game/d_main.o,$(OBJS)) $(HDRS)
+	$(CC) $(CFLAGS) -o $@ tests/retail.c $(filter-out build/game/d_main.o,$(OBJS)) $(LDLIBS)
+
+.PHONY: checkretail
 
 checkcapture: all
 	python3 -B tests/capture.py

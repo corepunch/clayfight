@@ -312,3 +312,21 @@ int W_GuessPalette(const patch_t *pt, const gra_t *gra)
     }
     return best;
 }
+
+int W_FramePalette(gra_t *gra, int frame)
+{
+    // S04SELMO object descriptors in PRAGE.EXE explicitly bind these ranges
+    // to palettes. Smoothness cannot distinguish intentional colour variants.
+    if (!strcasecmp(gra->name, "S04SELMO.GRA")) {
+        static const struct { int first, last, pal; } mappings[] = {
+            {91, 95, 4}, {97, 101, 6}, {113, 117, 11}, {125, 129, 12},
+            {130, 134, 13}, {135, 137, 14}, {141, 145, 16}, {149, 153, 18},
+            {118, 118, 20}, {119, 119, 21}, {120, 120, 22}, {121, 121, 23},
+            {122, 122, 24}, {123, 123, 25}, {124, 124, 26},
+        };
+        for (unsigned i = 0; i < sizeof mappings / sizeof mappings[0]; i++)
+            if (frame >= mappings[i].first && frame <= mappings[i].last)
+                return mappings[i].pal;
+    }
+    return W_GuessPalette(W_Frame(gra, frame), gra);
+}

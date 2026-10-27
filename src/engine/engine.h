@@ -81,6 +81,7 @@ gra_t *W_GraById(int id); // by INDEX position (the file ids used in PRAGE.EXE)
 patch_t *W_Frame(gra_t *gra, int index);
 int W_LoadSounds(const char *name, sfxdata_t **out);
 int W_GuessPalette(const patch_t *patch, const gra_t *gra);
+int W_FramePalette(gra_t *gra, int frame); // recorded menu mappings, otherwise guessed
 pixel_t W_RGB(int r, int g, int b);
 
 // --- w_exe.c: data tables straight out of PRAGE.EXE (cf. w_wad.h) ---------
@@ -142,6 +143,8 @@ void V_DrawPatchScaled(int x, int y, const patch_t *p, const palette_t *pal, int
 
 int V_TextWidth(font_t font, const char *text);
 void V_DrawText(font_t font, int x, int y, const char *text);
+void V_DrawTextColor(font_t font, int x, int y, const char *text, pixel_t color);
+void V_DrawTextScaled(font_t font, int x, int y, const char *text, pixel_t color, float sx, float sy);
 void V_DrawTextCentered(font_t font, int cx, int y, const char *text);
 
 #endif

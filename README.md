@@ -91,5 +91,6 @@ these renderer checks independently of the original game data.
 * From `PRAGE.EXE`, via the converter: animation scripts, move table, attack
   boxes, fighter palettes.
 * Still rebuilt by Clayfight: hurt boxes (from the sprite silhouettes), stage
-  layouts, select-screen palettes (chosen automatically as the smoothest
-  result), sound triggers, CPU AI.
+  layouts, palettes for unmapped artwork (chosen automatically as the smoothest
+  result), sound triggers, CPU AI. The select temple and large portraits use
+  explicit palette bindings; original fighter palettes come from PRAGE.EXE.

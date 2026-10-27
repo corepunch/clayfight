@@ -37,8 +37,8 @@ void M_SaveOptions(void)
     }
 }
 
-// Menus use original patches, drawn by their top-left corner. Cache palettes
-// because the archive stores no explicit frame -> palette table.
+// Menus use original patches, drawn by their top-left corner. Cache the
+// recorded palette mapping (or the fallback for unmapped artwork).
 void M_DrawArt(const char *file, int frame, int x, int y, float scale, int flags)
 {
     static struct { gra_t *g; int frame, pal; } cache[256];
@@ -50,7 +50,7 @@ void M_DrawArt(const char *file, int frame, int x, int y, float scale, int flags
     for (int i = 0; i < count; i++)
         if (cache[i].g == g && cache[i].frame == frame) pal = cache[i].pal;
     if (pal < 0) {
-        pal = W_GuessPalette(p, g);
+        pal = W_FramePalette(g, frame);
         if (count < 256) {
             cache[count].g = g; cache[count].frame = frame; cache[count++].pal = pal;
         }

@@ -14,8 +14,9 @@ static void ToWorld(const fighter_t *f, float fwd0, float fwd1, float y0, float 
     float a = f->x + f->facing * fwd0, b = f->x + f->facing * fwd1;
     out->x0 = MIN(a, b);
     out->x1 = MAX(a, b);
-    out->z0 = f->z - y1;
-    out->z1 = f->z - y0;
+    float z = f->z + P_SpriteLift(f);
+    out->z0 = z - y1;
+    out->z1 = z - y0;
 }
 
 bool P_HurtBox(const fighter_t *f, box_t *out)

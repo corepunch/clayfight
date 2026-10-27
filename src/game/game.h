@@ -397,6 +397,7 @@ bool P_SetAnim(fighter_t *f, animnum_t anim);
 bool P_StartMove(fighter_t *f, int slot, animnum_t next);
 bool P_InAnim(const fighter_t *f, animnum_t anim);
 bool P_IsAirborne(const fighter_t *f);
+int P_SpriteLift(const fighter_t *f); // air art's lowest pixel sits at the simulated feet
 void P_FighterThinker(fighter_t *f);
 void P_AnimTick(fighter_t *f); // advance the animation only
 

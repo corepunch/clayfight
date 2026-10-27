@@ -44,6 +44,17 @@ bool P_IsAirborne(const fighter_t *f)
     return f->z > 0 || f->momz > 0;
 }
 
+int P_SpriteLift(const fighter_t *f)
+{
+    // Ground poses have foot hotspots; the original air poses often have
+    // torso hotspots instead. Our z is always measured at the feet. Keep
+    // those poses above that plane, including during takeoff and landing.
+    if (f->state->kind != K_AIR)
+        return 0;
+    const patch_t *p = P_StatePatch(f->state);
+    return p && p->hasbox ? MAX(0, p->by1 + 1) : 0;
+}
+
 void P_Voice(fighter_t *f, int which, float vol)
 {
     S_StartVoice(f->def->prefix, which, f->x, vol);

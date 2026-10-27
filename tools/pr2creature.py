@@ -44,6 +44,10 @@ META = {
     6: dict(file='chaos', alt=0, select=(97, 104), speed=(1.5, 1.2, 7.8), width=38),
 }
 
+# Player-one object descriptors, indexed in character order. Their +16 field
+# identifies the actual palette; Vertigo uses 1, the other six use 3.
+PLAYER_OBJECTS = [0x10A7AC, 0x10A7D4, 0x10A824, 0x10A84C, 0x10A7FC, 0x10A874, 0x10A89C]
+
 # Engine animations and the core row each comes from.
 STANDARD = [
     ('stand', 0), ('crouch', 1), ('walkf', 7), ('walkb', 10), ('jump', 4), ('land', 13),
@@ -255,6 +259,9 @@ class Converter:
     def character(self, ci, meta):
         c = X.CHARS[ci]
         name, prefix = c['name'].upper(), c['prefix']
+        palette_file, palette = self.gra.palette_index(self.mem.u32(PLAYER_OBJECTS[ci] + 16))
+        if self.gra.index[palette_file]['name'].upper() != 'S04%s.GRA' % prefix.upper() or palette is None:
+            raise ValueError('Unexpected player palette for %s' % name)
         out = [
             '# %s -- converted from PRAGE.EXE (character %d) by tools/pr2creature.py' % (name, ci),
             '# Derived from your copy of Primal Rage: do not redistribute.',
@@ -262,7 +269,7 @@ class Converter:
             'name %s' % name,
             'art %s left' % prefix,
             'prage %d' % ci,
-            'palette 3 alt %d' % meta['alt'],
+            'palette %d alt %d' % (palette, meta['alt']),
             'select %d %d' % meta['select'],
             'speed %s %s %s' % tuple(num(v) for v in meta['speed']),
             'width %d' % meta['width'],

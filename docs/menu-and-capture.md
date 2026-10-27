@@ -30,7 +30,7 @@ The working menu tree is:
 Settings are saved in `build/options.cfg`. Modify Controls currently displays
 the working keyboard/controller bindings; rebinding is not implemented.
 Music playback/test, gore controls, high scores and statistics are not yet
-ported. Layout, palette selection, CPU logic, arena composition, territory
+ported. Layout, unmapped artwork palettes, CPU logic, arena composition, territory
 pins and transitions are reconstructed; this is not a binary-exact port of
 the PC menus or the complete original game. Original specials, fatalities,
 followers, the refuelling bonus and character ending cinematics remain outside
@@ -60,6 +60,15 @@ lets each side select four fighters; the winner keeps their health and faces
 the next member of the other team. Without P2, the CPU selects a team.
 
 Esc pauses a fight; Q while paused abandons it and returns to the main menu.
+
+Character select uses the retail temple composition: four stone heads above
+three, a red/blue cursor and small animated fighters on the steps. Original
+fighters keep their seven tiles; clay fighters occupy separate seven-tile
+temple pages. Left/right wraps between pages, up/down follows the staggered
+rows, and desktop Tab jumps to the next page. C opens Create Fighter. Palette
+bindings for the temple and original large portraits come from the installed
+game's data; the small heads use their fighter colours with cursor-coloured
+backings. Additional creation/page hints occupy a narrow footer.
 
 ## Photographing a fighter
 
@@ -122,7 +131,7 @@ foot hotspots and separate portrait. Selection refreshes as the camera closes.
 The app keeps original photos and recorded movies under the fighter's `sources/`
 directory, normalized `photos/`, `fighter.txt` and `capture.plist`. Bundled
 original/concept fighters and user-created fighters appear in the same roster.
-The roster pages after 14 cells and supports up to 64 fighters. Original game
+The roster pages after seven cells and supports up to 64 fighters. Original game
 data is bundled from the developer's local copy during the Xcode build; it is
 never downloaded at runtime or committed to the repository.
 

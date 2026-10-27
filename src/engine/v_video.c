@@ -147,18 +147,40 @@ int V_TextWidth(font_t font, const char *text)
     return w;
 }
 
-void V_DrawText(font_t font, int x, int y, const char *text)
+static void DrawText(font_t font, int x, int y, const char *text, const palette_t *pal, float sx, float sy)
 {
-    const palette_t *pal = &fonts->palettes[0];
+    float pen = x;
     for (; *text; text++) {
         const patch_t *p = glyph(font, *text);
         if (!p) {
-            x += font == FONT_BIG ? 8 : 4;
+            pen += (font == FONT_BIG ? 8 : 4) * sx;
             continue;
         }
-        V_DrawPatch(x + p->x, y + p->y, p, pal, 0); // top-left at the pen
-        x += p->w + 1;
+        V_DrawPatchScaled((int)lroundf(pen + p->x * sx), y + (int)lroundf(p->y * sy), p, pal, 0, sx, sy);
+        pen += (p->w + 1) * sx;
     }
+}
+
+void V_DrawText(font_t font, int x, int y, const char *text)
+{
+    DrawText(font, x, y, text, &fonts->palettes[0], 1, 1);
+}
+
+void V_DrawTextColor(font_t font, int x, int y, const char *text, pixel_t color)
+{
+    V_DrawTextScaled(font, x, y, text, color, 1, 1);
+}
+
+void V_DrawTextScaled(font_t font, int x, int y, const char *text, pixel_t color, float sx, float sy)
+{
+    palette_t pal = fonts->palettes[0];
+    for (int i = 1; i <= pal.count; i++) {
+        pixel_t c = pal.colors[i];
+        int light = MAX((c >> 16) & 255, MAX((c >> 8) & 255, c & 255));
+        pal.colors[i] = W_RGB(((color >> 16) & 255) * light / 255,
+                             ((color >> 8) & 255) * light / 255, (color & 255) * light / 255);
+    }
+    DrawText(font, x, y, text, &pal, sx, sy);
 }
 
 void V_DrawTextCentered(font_t font, int cx, int y, const char *text)
