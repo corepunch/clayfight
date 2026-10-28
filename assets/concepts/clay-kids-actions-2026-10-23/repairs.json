@@ -1,0 +1,9 @@
+{
+  "tool": "Built-in image_gen",
+  "edits": [
+    {
+      "file": "purple-cyclops-actions.png",
+      "prompt": "Use case: precise-object-edit.\nAsset type: transparent PNG sprite atlas for the existing Clayfight game.\nInput image 1 is the EDIT TARGET, a purple clay cyclops atlas with 4 columns and 4 rows, 16 poses. Correct ONE anatomical error: in row 4 column 2 (index 13, the squashed pain pose), replace the TWO squeezed-shut eye marks with exactly ONE central squeezed-shut cyclops eye, a single small sideways chevron matching the clay eyelid style. Keep the tiny wavy mouth below it. Every other pose already has one eye and must stay unchanged.\nPreserve all sixteen poses, their exact pixel positions and scale, their actions, lighting, purple clay texture, mint horns and belly, and all limbs. Preserve the canvas dimensions and exact 4x4 arrangement. Do not reframe, rearrange, crop, resize, redraw or restyle other poses. Transparent alpha background, no shadow, no text or marks outside the figures. Output the complete corrected sheet."
+    }
+  ]
+}
