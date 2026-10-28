@@ -21,10 +21,11 @@ starts, Esc pauses, the backtick key shows hit boxes. Game controllers work too.
 Press a right-player button on the select screen to join; otherwise you fight
 the CPU.
 
-This branch renders at **640×480**, with square pixels and nearest-neighbor
-presentation. Drawing and simulation use a 320×240 coordinate space; legacy
-DOS sprites, scenery and fonts enlarge 2×. Photo creatures retain a separate
-640×480-density image sampled from their source photos, with the same 31-colour
+The game renders at **640×400**, exactly twice the DOS version's **320×200**
+frame, with square pixels and nearest-neighbor presentation. Drawing and
+simulation use that 320×200 coordinate space; legacy DOS sprites, scenery and
+fonts enlarge 2×. Photo creatures retain a separate image with two pixels per
+world unit sampled from their 640×480 source photos, with the same 31-colour
 palette, hotspot and simulation silhouette. Their extra detail is real source
 detail rather than enlarged low-resolution pixels.
 
@@ -48,7 +49,7 @@ names follow Doom's, so its source is a map to this one.
 | Folder | Header | Files | Role |
 |---|---|---|---|
 | `src/platform/` | `platform.h` | `i_system i_video i_sound d_event` | SDL2: window, input, sound mixer, timing, event queue; basic types |
-| `src/engine/` | `engine.h` | `w_gra w_exe w_png w_photo v_video m_random m_argv` | `.GRA` archives (Doom: `w_wad`), tables inside `PRAGE.EXE`, PNG photos turned into sprite files; 640×480 framebuffer and fonts; random numbers; command line |
+| `src/engine/` | `engine.h` | `w_gra w_exe w_png w_photo v_video m_random m_argv` | `.GRA` archives (Doom: `w_wad`), tables inside `PRAGE.EXE`, PNG photos turned into sprite files; 640×400 framebuffer and fonts; random numbers; command line |
 | `src/game/` | `game.h` | `info p_creature p_script p_check` | fighter state tables (Doom: `info`) loaded from creature files; Primal Rage's bytecode interpreter (`-script`) and the check against it |
 | | | `p_mobj p_user p_map p_inter p_enemy p_effect p_tick` | play simulation: state machine, ticcmd control, hit boxes, damage, CPU AI, particles, round flow |
 | | | `r_main r_stage st_stuff s_sound` | the fight scene and arenas, HUD and announcements, sound effects |

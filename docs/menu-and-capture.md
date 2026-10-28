@@ -1,8 +1,8 @@
 # Menus, conquest and the capture workshop
 
 Clayfight targets **native iPhone and iPad**. Open `ios/Clayfight.xcodeproj`
-and run the Clayfight scheme. The shared C engine renders at 640×480, with the
-original art enlarged 2×. UIKit presents the game and touch controls;
+and run the Clayfight scheme. The shared C engine renders at 640×400, exactly
+2× the DOS 320×200 frame. UIKit presents the game and touch controls;
 AVFoundation captures photographs and video inside the app. The native target
 does not link SDL and does not run a browser, web server, Python or subprocess.
 
@@ -62,13 +62,19 @@ the next member of the other team. Without P2, the CPU selects a team.
 Esc pauses a fight; Q while paused abandons it and returns to the main menu.
 
 Character select uses the retail temple composition: four stone heads above
-three, a red/blue cursor and small animated fighters on the steps. Original
+three, red/yellow cursors and animated fighters standing on the two original
+stone podiums. The full 272×170 temple is centred in the 320×200 view with no
+zoom, nonuniform stretch or cropping, so its source pixels appear exactly 2×.
+The original tile order is Sauron, Talon, Armadon, Blizzard above Chaos,
+Vertigo, Diablo. Original
 fighters keep their seven tiles; clay fighters occupy separate seven-tile
 temple pages. Left/right wraps between pages, up/down follows the staggered
 rows, and desktop Tab jumps to the next page. C opens Create Fighter. Palette
 bindings for the temple and original large portraits come from the installed
-game's data; the small heads use their fighter colours with cursor-coloured
-backings. Additional creation/page hints occupy a narrow footer.
+game's data; the small heads retain their fighter palettes and background
+colours. Additional creation/page hints occupy the lower margin below the
+complete scene. The desktop window starts at 640×400 and cannot shrink below
+that size; larger windows letterbox the complete framebuffer.
 
 ## Photographing a fighter
 

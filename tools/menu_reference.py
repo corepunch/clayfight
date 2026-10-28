@@ -12,7 +12,9 @@ import grasheet
 
 ART = {"title-slab": ("S04TITLE.GRA",45), "title-primal": ("S04TITLE.GRA",37),
        "title-rage": ("S04TITLE.GRA",19), "select-temple": ("S04SELMO.GRA",136),
-       "select-temple-overlay": ("S04SELMO.GRA",137), "menu-stone": ("S04SLABS.GRA",37),
+       "select-temple-overlay": ("S04SELMO.GRA",137),
+       "select-podium-left": ("S04SELMO.GRA",105), "select-podium-right": ("S04SELMO.GRA",106),
+       "menu-stone": ("S04SLABS.GRA",37),
        "urth-globe": ("S04GLOBM.GRA",19), "urth-north": ("S04GLOBM.GRA",23),
        "urth-island": ("S04GLOBM.GRA",37), "urth-south": ("S04GLOBM.GRA",44)}
 

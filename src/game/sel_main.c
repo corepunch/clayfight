@@ -24,19 +24,21 @@ static int palcache[512];
 
 // The temple's stone heads, in visual order (four above three). Keep the
 // original roster on this page; photographs occupy matching pages of tiles.
-static const int templecodes[7] = {0, 5, 4, 1, 6, 3, 2};
+static const int templecodes[7] = {0, 2, 4, 1, 6, 3, 5};
 static const int headframes[7] = {140, 139, 148, 147, 103, 102, 111};
-static const int headpalettes[7] = {28, 27, 29, 1, 2, 0, 30};
+static const int headpalettes[7] = {28, 30, 29, 1, 2, 0, 27};
 static const int tilex[7] = {57, 98, 138, 179, 77, 118, 158};
 static const int tiley[7] = {19, 19, 19, 19, 46, 46, 46};
 static int slots[MAXROSTER + 7], numslots;
 
-// Match the retail composition in our square-pixel 320x240 view. The scene
-// extends past the sides and bottom, with the temple filling the screen.
-#define TEMPLE_X -16
-#define TEMPLE_Y 8
-#define TEMPLE_SX 1.3f
-#define TEMPLE_SY 1.5f
+// The complete S04 temple is 272x170. Centre it in the DOS 320x200 frame
+// without stretching or clipping; the framebuffer enlarges every texel 2x.
+#define TEMPLE_X ((VIEWWIDTH - 272) / 2)
+#define TEMPLE_Y ((VIEWHEIGHT - 170) / 2)
+#define TEMPLE_SX 1.f
+#define TEMPLE_SY 1.f
+#define PODIUM_TOP (TEMPLE_Y + 142)
+#define PREVIEW_FEET (PODIUM_TOP + 4)
 static int TileX(int cell) { return (int)lroundf(TEMPLE_X + tilex[cell] * TEMPLE_SX); }
 static int TileY(int cell) { return (int)lroundf(TEMPLE_Y + tiley[cell] * TEMPLE_SY); }
 
@@ -202,7 +204,7 @@ void M_DrawCreature(const fighterdef_t *d, int x, int y, int w, int h, bool mirr
     V_DrawPatchScaled(px, y + h - 2, p, (d->photoport ? &d->photoport->palettes[0] : &d->base->palettes[d->palette]), flip ? V_FLIP : 0, sc, sc);
 }
 
-// Display the actual breathing pose on the temple steps, facing inward.
+// Display the breathing pose on the podium's top surface, facing inward.
 static void SEL_Preview(int pl)
 {
     const fighterdef_t *d = roster[cursor[pl]];
@@ -215,15 +217,17 @@ static void SEL_Preview(int pl)
         const patch_t *pose = P_StatePatch(&d->states[a->first + i]);
         if (pose) height = MAX(height, pose->h);
     }
-    float sc = MIN(0.8f, 66.f / height);
+    float sc = 66.f / height;
     bool flip = (d->facesleft == (pl == 0)) != st->hflip;
-    int cx = pl ? 236 : 84;
-    int x = cx + (int)lroundf((flip ? -1 : 1) * (p->x - p->w / 2.f) * sc);
-    int y = 202 - (int)lroundf((p->h - p->y) * sc);
+    int cx = TEMPLE_X + (pl ? 204 : 68);
+    // The stand hotspot is the foot position. Centring the whole bitmap
+    // includes long tails and pushes the feet off the podium toward P2.
+    int x = cx;
+    int y = PREVIEW_FEET - (int)lroundf((p->h - p->y) * sc);
     V_DrawPatchScaled(x, y, p, &d->base->palettes[d->palette], flip ? V_FLIP : 0, sc, sc);
     float labelscale = MIN(0.65f, 132.f / V_TextWidth(FONT_BIG, d->name));
     int labelx = pl ? 294 - (int)(V_TextWidth(FONT_BIG, d->name) * labelscale) : 26;
-    V_DrawTextScaled(FONT_BIG, labelx, 116, d->name, 0xffffe080, labelscale, 0.9f);
+    V_DrawTextScaled(FONT_BIG, labelx, TEMPLE_Y + 72, d->name, 0xffffe080, labelscale, 0.9f);
 }
 
 static void SEL_Tile(int cell, int fighter)
@@ -236,18 +240,15 @@ static void SEL_Tile(int cell, int fighter)
     if (rosterpage == 0) {
         if (selected < 0) return; // unselected heads are carved into the temple
         const patch_t *p = W_Frame(selgra, headframes[cell]);
-        palette_t pal = selgra->palettes[headpalettes[cell]];
-        // The small portraits have a solid backing index. The retail cursor
-        // recolours that backing along with the surrounding red/blue frame.
-        pal.colors[p->pixels[0]] = selected ? 0xff182b80 : 0xffa01810;
+        const palette_t *pal = &selgra->palettes[headpalettes[cell]];
         V_DrawPatchScaled(x + (int)lroundf(p->x * TEMPLE_SX),
-                          y + (int)lroundf(p->y * TEMPLE_SY), p, &pal, 0, TEMPLE_SX, TEMPLE_SY);
+                          y + (int)lroundf(p->y * TEMPLE_SY), p, pal, 0, TEMPLE_SX, TEMPLE_SY);
     } else {
         // Clay close-ups replace the stone heads on their own temple page.
         const fighterdef_t *d = roster[fighter];
         const patch_t *p = d->photoport ? W_Frame(d->photoport, 0)
                                        : P_StatePatch(&d->states[d->anims[ANIM_STAND].first]);
-        V_FillRect(x, y, w, h, selected < 0 ? 0xff383c40 : selected ? 0xff182b80 : 0xff801810);
+        V_FillRect(x, y, w, h, selected < 0 ? 0xff383c40 : selected ? 0xff807018 : 0xff801810);
         if (p) {
             float sc = MIN((w - 4.f) / p->w, (h - 2.f) / p->h);
             const palette_t *pal = d->photoport ? &d->photoport->palettes[0] : &d->base->palettes[d->palette];
@@ -258,7 +259,7 @@ static void SEL_Tile(int cell, int fighter)
     }
     for (int pl = 0; pl < 2; pl++) {
         if (cursor[pl] != fighter || (!joined[pl] && !chosen[pl])) continue;
-        pixel_t color = pl ? 0xff3070ff : 0xffff2010;
+        pixel_t color = pl ? 0xffffed10 : 0xffff2010;
         int inset = selected == 1 && pl == 0 ? 2 : 0;
         SEL_Box(x - 2 + inset, y - 2 + inset, w + 4 - inset * 2, h + 4 - inset * 2, color);
         SEL_Box(x - 1 + inset, y - 1 + inset, w + 2 - inset * 2, h + 2 - inset * 2, color);
@@ -272,38 +273,42 @@ void SEL_Drawer(void)
     const char *heading = gamemode == GM_ENDURANCE ? "SELECT FOUR FIGHTERS"
         : gamemode == GM_TRAINING && chosen[0] ? "SELECT OPPONENT" : "START TO SELECT";
     V_DrawTextScaled(FONT_BIG, 160 - (int)(V_TextWidth(FONT_BIG, heading) * 0.375f),
-                     24, heading, 0xffffe080, 0.75f, 0.85f);
+                     3, heading, 0xffffe080, 0.75f, 0.85f);
 
     if (rosterpage) {
         // Cover all seven reliefs, including unused cells of a final page.
         for (int cell = 0; cell < 7; cell++) {
             int x = TileX(cell), y = TileY(cell);
-            V_FillRect(x - 1, y - 1, 50, 38, 0xff383c40);
-            SEL_Box(x - 1, y - 1, 50, 38, 0xff74787c);
+            V_FillRect(x - 1, y - 1, 39, 26, 0xff383c40);
+            SEL_Box(x - 1, y - 1, 39, 26, 0xff74787c);
         }
     }
     for (int cell = 0; cell < 7; cell++) {
         int slot = rosterpage * 7 + cell;
         if (slot < numslots && slots[slot] >= 0) SEL_Tile(cell, slots[slot]);
     }
-    for (int pl = 0; pl < 2; pl++)
+    for (int pl = 0; pl < 2; pl++) {
+        int cx = TEMPLE_X + (pl ? 204 : 68);
+        const patch_t *podium = W_Frame(selgra, 105 + pl);
+        SEL_DrawArt(105 + pl, cx - podium->w / 2, PODIUM_TOP, 1, 1);
         if (joined[pl] || chosen[pl]) SEL_Preview(pl);
+    }
 
     const pixel_t green = 0xff00d000, cyan = 0xff20c8d8;
-    const char *prompt = chosen[0] ? "CHARACTER SELECTED" : "SELECT CHARACTER";
     if (gamemode == GM_ENDURANCE) {
         char team[40];
         snprintf(team, sizeof team, "TEAM 1 %d/4   TEAM 2 %d/4", teamcount[0], teamcount[1]);
-        V_DrawTextColor(FONT_SMALL, 25, 207, team, green);
-    } else V_DrawTextScaled(FONT_BIG, 25, 207, prompt, green, 0.6f, 0.9f);
+        V_DrawTextColor(FONT_SMALL, 25, 185, team, green);
+    } else if (!joined[1]) {
 #ifdef CLAY_IOS
-    V_DrawTextScaled(FONT_BIG, 25, 220, "THEN PRESS SELECT", cyan, 0.6f, 0.9f);
+        V_DrawTextColor(FONT_SMALL, 25, 185, "SELECT: CONFIRM", cyan);
 #else
-    V_DrawTextScaled(FONT_BIG, 25, 220, "THEN PRESS START", cyan, 0.6f, 0.9f);
+        V_DrawTextColor(FONT_SMALL, 25, 185, "ENTER: CONFIRM", cyan);
 #endif
+    }
     if (!joined[1] && !chosen[1]) {
-        if ((seltime / 30) % 2 == 0) V_DrawTextScaled(FONT_BIG, 210, 220, "PRESS START", green, 0.6f, 0.9f);
-    } else if (chosen[0] && chosen[1]) V_DrawTextCentered(FONT_BIG, 160, 126, "FIGHT!");
+        if ((seltime / 30) % 2 == 0) V_DrawTextColor(FONT_SMALL, 210, 185, "P2: PRESS START", green);
+    } else if (chosen[0] && chosen[1]) V_DrawTextCentered(FONT_BIG, 160, 110, "FIGHT!");
 
     char footer[72];
 #ifdef CLAY_IOS
@@ -314,6 +319,6 @@ void SEL_Drawer(void)
              rosterpage ? "CLAY" : "ORIGINAL", rosterpage + 1, (numslots + 6) / 7,
              rosterpage ? "NEXT PAGE" : "CLAY FIGHTERS");
 #endif
-    V_FillRect(0, 231, VIEWWIDTH, 9, 0xff141218);
-    V_DrawTextCentered(FONT_SMALL, 160, 233, footer);
+    V_FillRect(0, VIEWHEIGHT - 9, VIEWWIDTH, 9, 0xff141218);
+    V_DrawTextCentered(FONT_SMALL, 160, VIEWHEIGHT - 7, footer);
 }

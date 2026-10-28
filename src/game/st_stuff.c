@@ -40,8 +40,8 @@ void ST_Drawer(const int wins[2])
         V_FillRect(9, 8, level.fighters[0].health * 302 / MAX_HEALTH, 8, 0xffdf8041);
         V_FillRect(159, 7, 2, 10, 0xfff2dfbc);
     }
-    if (gamemode == GM_TRAINING) V_DrawTextCentered(FONT_SMALL, 160, 233, "TRAINING  /  ESC THEN Q TO LEAVE");
-    if (gamemode == GM_ENDURANCE) V_DrawTextCentered(FONT_SMALL, 160, 233, "ENDURANCE  /  FOUR FIGHTERS PER TEAM");
+    if (gamemode == GM_TRAINING) V_DrawTextCentered(FONT_SMALL, 160, VIEWHEIGHT - 7, "TRAINING  /  ESC THEN Q TO LEAVE");
+    if (gamemode == GM_ENDURANCE) V_DrawTextCentered(FONT_SMALL, 160, VIEWHEIGHT - 7, "ENDURANCE  /  FOUR FIGHTERS PER TEAM");
     char clock[8];
     if (level.time < 0) snprintf(clock, sizeof clock, "--");
     else snprintf(clock, sizeof clock, "%02d", (level.time + TICRATE - 1) / TICRATE);

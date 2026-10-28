@@ -7,7 +7,7 @@
 
 #include "platform/platform.h"
 
-// Drawing and gameplay use a 320x240 coordinate space; the framebuffer has
+// Drawing and gameplay use the DOS 320x200 space; the framebuffer has
 // two square pixels per unit. Legacy patches scale up; photos retain detail.
 #define VIEWWIDTH (SCREENWIDTH / 2)
 #define VIEWHEIGHT (SCREENHEIGHT / 2)

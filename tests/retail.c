@@ -2,12 +2,55 @@
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
+#include <SDL.h>
 #include "game/game.h"
 
 static void press(int key)
 {
+    if (key == '\t') {
+        // Go through the real SDL scancode path, not just the menu responder.
+        SDL_Event keydown = {0};
+        keydown.type = SDL_KEYDOWN;
+        keydown.key.keysym.scancode = SDL_SCANCODE_TAB;
+        assert(SDL_PushEvent(&keydown) == 1);
+        I_StartTic();
+        responder_t responders[] = {SEL_Responder};
+        D_ProcessEvents(responders, 1);
+        return;
+    }
     event_t e = {ev_keydown, key};
     assert(SEL_Responder(&e));
+}
+
+static void composition_checks(void)
+{
+    assert(SCREENWIDTH == 640 && SCREENHEIGHT == 400);
+    gra_t *g = W_LoadGra("S04SELMO.GRA");
+    const patch_t *bg = W_Frame(g, 136);
+    const palette_t *pal = &g->palettes[14];
+    int left = (VIEWWIDTH - bg->w) / 2, top = (VIEWHEIGHT - bg->h) / 2;
+    SEL_Drawer();
+    I_SaveScreenshot(screen, "build/retail-composition.bmp");
+    // Both complete vertical edges must survive, including the sky and floor.
+    for (int y = 0; y < bg->h; y++) {
+        for (int side = 0; side < 2; side++) {
+            int x = side ? bg->w - 1 : 0, value = bg->pixels[y * bg->w + x];
+            if (!value) continue;
+            for (int dy = 0; dy < 2; dy++) for (int dx = 0; dx < 2; dx++)
+                assert(screen[((top + y) * 2 + dy) * SCREENWIDTH + (left + x) * 2 + dx] == pal->colors[value]);
+        }
+    }
+    // Both original podiums are visible at exactly 2x, unobscured by UI.
+    for (int pl = 0; pl < 2; pl++) {
+        const patch_t *p = W_Frame(g, 105 + pl);
+        int px = left + (pl ? 204 : 68) - p->w / 2, py = top + 142;
+        for (int y = 5; y < p->h; y++) for (int x = 0; x < p->w; x++) {
+            int value = p->pixels[y * p->w + x];
+            if (!value) continue;
+            for (int dy = 0; dy < 2; dy++) for (int dx = 0; dx < 2; dx++)
+                assert(screen[((py + y) * 2 + dy) * SCREENWIDTH + (px + x) * 2 + dx] == pal->colors[value]);
+        }
+    }
 }
 
 static void launch(void)
@@ -26,6 +69,18 @@ static void select_checks(void)
 {
     gamemode = GM_TUG;
     SEL_Start();
+    press('s'); // Chaos fits within the temple edges being checked below.
+    composition_checks();
+    press('w');
+    press('o');
+    press('s'); press('d'); press('d'); // P1: Diablo, lower-right
+    press(KEY_RIGHTARROW); // P2: Talon, second tile on the top row
+    shot("build/retail-versus-podiums.bmp");
+    press(KEY_ENTER); press('o'); launch();
+    assert(match.defs[0]->codeindex == 5 && match.defs[1]->codeindex == 2);
+
+    SEL_Start();
+    for (int i = 0; i < 6; i++) press('a'); // Diablo -> Sauron
     press('s'); // the lower-left relief is Chaos, below Sauron
     shot("build/retail-chaos.bmp");
     press('d'); // Vertigo, the lower middle relief
@@ -33,7 +88,7 @@ static void select_checks(void)
     assert(match.defs[0]->codeindex == 3);
 
     SEL_Start();
-    press('w'); press('d'); // Vertigo -> Diablo -> Armadon
+    press('w'); press('d'); // Vertigo -> Talon -> Armadon
     press('o'); // P2 joins on its current original tile
     press(KEY_ENTER); press('o'); launch();
     assert(match.defs[0]->codeindex == 4 && !match.cpu[1]);
@@ -117,6 +172,6 @@ int main(int argc, char **argv)
     select_checks();
     air_checks();
     I_Shutdown();
-    puts("retail: temple navigation, clay pages, full roster, P2 and original palettes passed");
+    puts("retail: 640x400, complete 2x temple, podiums, SDL Tab, navigation, clay pages, P2 and palettes passed");
     return 0;
 }

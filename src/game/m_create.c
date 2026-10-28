@@ -56,5 +56,5 @@ void M_CreateDrawer(void)
         V_DrawTextCentered(FONT_SMALL, 160, 157, "MANUAL: PYTHON3 TOOLS/CAPTURE_SERVER.PY");
     }
 #endif
-    V_DrawTextCentered(FONT_BIG, 160, 186, "ENTER: CHOOSE YOUR FIGHTER");
+    V_DrawTextCentered(FONT_SMALL, 160, 176, "ENTER: CHOOSE YOUR FIGHTER");
 }

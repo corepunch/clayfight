@@ -101,9 +101,9 @@ void C_Drawer(void)
 {
     if (gamestate == GS_ENDING) {
         M_Background(campaign.defeated ? "GAME OVER" : "MASTER OF THE NEW URTH");
-        M_DrawCreature(campaign.hero, 110, 55, 100, 113, false);
-        V_DrawTextCentered(FONT_BIG, 160, 179, campaign.hero->name);
-        V_DrawTextCentered(FONT_SMALL, 160, 201, campaign.defeated ? "YOUR CONQUEST ENDS HERE" : "SEVEN LANDS. SEVEN FINAL RIVALS. VICTORY!");
+        M_DrawCreature(campaign.hero, 110, 44, 100, 100, false);
+        V_DrawTextCentered(FONT_BIG, 160, 150, campaign.hero->name);
+        V_DrawTextCentered(FONT_SMALL, 160, 176, campaign.defeated ? "YOUR CONQUEST ENDS HERE" : "SEVEN LANDS. SEVEN FINAL RIVALS. VICTORY!");
         return;
     }
     if (gamestate == GS_CONTINUE) {
@@ -127,31 +127,31 @@ void C_Drawer(void)
     int layers[] = {frame, 23 + campaign.tics / 12 % 4, 37, 44};
     for (int i = 0; i < 4; i++) {
         patch_t *p = W_Frame(g, layers[i]);
-        V_DrawPatch(104, 118, p, &g->palettes[W_GuessPalette(p, g)], 0);
+        V_DrawPatch(104, 108, p, &g->palettes[W_GuessPalette(p, g)], 0);
     }
     int current = campaign.order[campaign.finalbattle ? campaign.finalindex : campaign.conquered];
     for (int i = 0; i < 7; i++) {
         int id = campaign.order[i];
         bool done = i < campaign.conquered;
-        int x = pins[id][0] + 15, y = pins[id][1] + 41;
+        int x = pins[id][0] + 15, y = pins[id][1] + 31;
         pixel_t color = done ? 0xff75b64b : 0xff926c38;
         if (id == current && (campaign.tics & 16)) color = 0xffffe0a0;
         V_FillRect(x - 2, y - 2, 5, 5, 0xff000000);
         V_FillRect(x - 1, y - 1, 3, 3, color);
-        V_DrawText(FONT_SMALL, 204, 53 + i * 18, campaign.opponents[id]->name);
-        if (done) V_DrawText(FONT_SMALL, 191, 53 + i * 18, "+");
-        if (id == current) V_DrawText(FONT_SMALL, 295, 53 + i * 18, "<");
+        V_DrawText(FONT_SMALL, 204, 43 + i * 18, campaign.opponents[id]->name);
+        if (done) V_DrawText(FONT_SMALL, 191, 43 + i * 18, "+");
+        if (id == current) V_DrawText(FONT_SMALL, 295, 43 + i * 18, "<");
     }
     char text[80];
     if (campaign.finalbattle) snprintf(text, sizeof text, "FINAL BATTLE  %d / 7", campaign.finalindex + 1);
     else snprintf(text, sizeof text, "LANDS CONQUERED: %d / 7", campaign.conquered);
-    V_DrawTextCentered(FONT_SMALL, 160, 194, text);
+    V_DrawTextCentered(FONT_SMALL, 160, 167, text);
     snprintf(text, sizeof text, "%s  /  %s", campaign.opponents[current]->name,
              campaign.finalbattle ? "DINOSAUR GRAVEYARD" : stages[home[current]].name);
-    V_DrawTextCentered(FONT_SMALL, 160, 209, text);
+    V_DrawTextCentered(FONT_SMALL, 160, 179, text);
 #ifdef CLAY_IOS
-    V_DrawTextCentered(FONT_SMALL, 160, 230, "SELECT: FIGHT    BACK: MAIN MENU");
+    V_DrawTextCentered(FONT_SMALL, 160, VIEWHEIGHT - 10, "SELECT: FIGHT    BACK: MAIN MENU");
 #else
-    V_DrawTextCentered(FONT_SMALL, 160, 230, "PRESS START TO FIGHT    ESC: MAIN MENU");
+    V_DrawTextCentered(FONT_SMALL, 160, VIEWHEIGHT - 10, "PRESS START TO FIGHT    ESC: MAIN MENU");
 #endif
 }

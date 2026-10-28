@@ -60,18 +60,18 @@ void M_DrawArt(const char *file, int frame, int x, int y, float scale, int flags
 void M_Background(const char *heading)
 {
     V_Clear(0xff070609);
-    M_DrawArt("S04SELMO.GRA", 136, 24, 26, 1, V_FADE);
-    V_FillRect(24, 43, 272, 175, 0xff100d10);
+    M_DrawArt("S04SELMO.GRA", 136, 24, 15, 1, V_FADE);
+    V_FillRect(24, 35, 272, 145, 0xff100d10);
     gra_t *slabs = W_LoadGra("S04SLABS.GRA");
     patch_t *border = W_Frame(slabs, 37);
-    V_DrawPatchScaled(24 + border->x * 2, 42 + border->y, border,
-                     &slabs->palettes[W_GuessPalette(border, slabs)], 0, 2, 1);
-    V_FillRect(40, 56, 240, 148, 0xff100d10);
-    V_DrawTextCentered(FONT_BIG, 160, 21, heading);
+    V_DrawPatchScaled(24 + border->x * 2, 34 + border->y * 0.8f, border,
+                     &slabs->palettes[W_GuessPalette(border, slabs)], 0, 2, 0.8f);
+    V_FillRect(40, 45, 240, 123, 0xff100d10);
+    V_DrawTextCentered(FONT_BIG, 160, 14, heading);
 #ifdef CLAY_IOS
-    V_DrawTextCentered(FONT_SMALL, 160, 230, "D-PAD: MOVE   SELECT: CONFIRM   BACK: RETURN");
+    V_DrawTextCentered(FONT_SMALL, 160, VIEWHEIGHT - 10, "D-PAD: MOVE   SELECT: CONFIRM   BACK: RETURN");
 #else
-    V_DrawTextCentered(FONT_SMALL, 160, 230, "ARROWS / WASD: MOVE   ENTER: SELECT   ESC: BACK");
+    V_DrawTextCentered(FONT_SMALL, 160, VIEWHEIGHT - 10, "ARROWS / WASD: MOVE   ENTER: SELECT   ESC: BACK");
 #endif
 }
 void M_StartTitle(void)
@@ -148,11 +148,11 @@ void M_Drawer(void)
         gra_t *g = W_LoadGra("S04TITLE.GRA");
         int slab = MIN(39 + pagetic / 6, 45);
         patch_t *p = W_Frame(g, slab);
-        M_DrawArt("S04TITLE.GRA", slab, 160 - p->w / 2, 104 - p->h / 2, 1, 0);
-        if (pagetic > 50) M_DrawArt("S04TITLE.GRA", 37, 95, 83, 1, 0);
-        if (pagetic > 80) M_DrawArt("S04TITLE.GRA", 19, 76, 107, 1, 0);
-        if (pagetic & 32) V_DrawTextCentered(FONT_SMALL, 160, 198, "PRESS START");
-        V_DrawTextCentered(FONT_SMALL, 160, 226, "CLAYFIGHT  /  PRIMAL RAGE + YOUR CLAY FIGHTERS");
+        M_DrawArt("S04TITLE.GRA", slab, 160 - p->w / 2, 90 - p->h / 2, 1, 0);
+        if (pagetic > 50) M_DrawArt("S04TITLE.GRA", 37, 95, 69, 1, 0);
+        if (pagetic > 80) M_DrawArt("S04TITLE.GRA", 19, 76, 93, 1, 0);
+        if (pagetic & 32) V_DrawTextCentered(FONT_SMALL, 160, 172, "PRESS START");
+        V_DrawTextCentered(FONT_SMALL, 160, VIEWHEIGHT - 10, "CLAYFIGHT  /  PRIMAL RAGE + YOUR CLAY FIGHTERS");
         return;
     }
     const char *headings[] = {"MAIN MENU", "CONFIG OPTIONS", "MODIFY CONTROLS", "START MENU", "OPTIONS MENU", "ADJUST VOLUME", "SOUND TEST"};
@@ -164,7 +164,7 @@ void M_Drawer(void)
         const char *lines[] = {"LEFT PLAYER: WASD", "HI QUICK / FIERCE: R / T", "LO QUICK / FIERCE: F / G", "RIGHT PLAYER: ARROWS",
             "HI QUICK / FIERCE: O / P", "LO QUICK / FIERCE: L / ;", "P2 JOINS WITH AN ATTACK", "ESC: PAUSE   Q: LEAVE PAUSED FIGHT", "GAMEPADS: D-PAD + FOUR FACE BUTTONS"};
 #endif
-        for (int i = 0; i < 9; i++) V_DrawTextCentered(FONT_SMALL, 160, 67 + 15 * i, lines[i]);
+        for (int i = 0; i < 9; i++) V_DrawTextCentered(FONT_SMALL, 160, 47 + 15 * i, lines[i]);
         return;
     }
     if (page == MENU_VOLUME) {
@@ -190,8 +190,8 @@ void M_Drawer(void)
         snprintf(labels[5], 64, "RESTORE DEFAULTS"); snprintf(labels[6], 64, "BACK");
     }
     int n = page == MENU_CONFIG ? 7 : page == MENU_MAIN ? 3 : 5;
-    int y = page == MENU_CONFIG ? 65 : page == MENU_MAIN ? 84 : 70;
-    int spacing = page == MENU_CONFIG ? 20 : page == MENU_MAIN ? 39 : 27;
+    int y = page == MENU_CONFIG ? 45 : page == MENU_MAIN ? 66 : 49;
+    int spacing = page == MENU_CONFIG ? 19 : page == MENU_MAIN ? 33 : 26;
     for (int i = 0; i < n; i++) {
         if (i == cursor) {
             V_FillRect(46, y - 4, 228, page == MENU_CONFIG ? 17 : 21, 0xff37241b);

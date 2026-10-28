@@ -36,8 +36,8 @@ void E_Drawer(void)
     M_Background("ENDURANCE");
     V_DrawTextCentered(FONT_BIG, 160, 67, result == 2 ? "NO WINNERS" : result == 0 ? "LEFT PLAYER WINS" : "RIGHT PLAYER WINS");
     if (result < 2) {
-        M_DrawCreature(team[result][member[result]], 118, 90, 84, 91, result == 1);
-        V_DrawTextCentered(FONT_SMALL, 160, 191, team[result][member[result]]->name);
+        M_DrawCreature(team[result][member[result]], 118, 86, 84, 73, result == 1);
+        V_DrawTextCentered(FONT_SMALL, 160, 166, team[result][member[result]]->name);
     }
-    V_DrawTextCentered(FONT_SMALL, 160, 207, "PRESS START TO RETURN");
+    V_DrawTextCentered(FONT_SMALL, 160, 178, "PRESS START TO RETURN");
 }

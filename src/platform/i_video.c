@@ -29,6 +29,7 @@ void I_InitGraphics(bool nowindow)
                               SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
     if (!window)
         I_Error("SDL_CreateWindow: %s", SDL_GetError());
+    SDL_SetWindowMinimumSize(window, SCREENWIDTH, SCREENHEIGHT);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if (!renderer)
         I_Error("SDL_CreateRenderer: %s", SDL_GetError());
@@ -81,6 +82,7 @@ static int I_TranslateKey(SDL_Scancode sc)
     case SDL_SCANCODE_RETURN: return KEY_ENTER;
     case SDL_SCANCODE_ESCAPE: return KEY_ESCAPE;
     case SDL_SCANCODE_SPACE: return KEY_SPACE;
+    case SDL_SCANCODE_TAB: return '\t';
     case SDL_SCANCODE_UP: return KEY_UPARROW;
     case SDL_SCANCODE_DOWN: return KEY_DOWNARROW;
     case SDL_SCANCODE_LEFT: return KEY_LEFTARROW;
