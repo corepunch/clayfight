@@ -79,6 +79,11 @@ The Primal Rage fighters live in `creatures/primalrage/`. `make` builds them fro
 the game's own move scripts and tables: frame order and timing, root motion,
 damage, stun, attack boxes, palettes.
 
+For planning your own photos, see the
+[Primal Rage animation frame counts and capture targets](docs/primal-rage-animation-frames.md):
+per-animation counts for all seven PC fighters, shared-image totals, and a
+suggested shot list for a custom creature.
+
 The game's bytecode interpreter is kept as a reference: `-script` plays from
 `PRAGE.EXE` directly (`src/engine/w_exe.c`, `src/game/p_script.c`). `make check` compares the two
 tic by tic, and all 266 animations and moves match. How the original works,
