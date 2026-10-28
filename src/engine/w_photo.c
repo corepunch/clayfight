@@ -26,6 +26,7 @@
 typedef struct {
     int w, h;
     float *rgb; // w*h*3, 0..255
+    byte *alpha; // NULL for opaque camera photos; authored PNGs keep their mask
 } image_t;
 
 typedef struct {
@@ -78,20 +79,29 @@ static image_t W_LoadWorkImage(const char *path)
     if (!rgba)
         I_Error("%s", err);
     int f = MAX(1, (MAX(w, h) + WORKSIZE - 1) / WORKSIZE);
-    image_t img = {w / f, h / f, NULL};
+    image_t img = {.w = w / f, .h = h / f};
     img.rgb = I_Malloc((size_t)img.w * img.h * 3 * sizeof(float));
+    img.alpha = I_Malloc((size_t)img.w * img.h);
+    bool transparent = false;
     for (int y = 0; y < img.h; y++) {
         for (int x = 0; x < img.w; x++) {
             float acc[3] = {0};
+            int coverage = 0;
             for (int dy = 0; dy < f; dy++)
-                for (int dx = 0; dx < f; dx++)
+                for (int dx = 0; dx < f; dx++) {
+                    const byte *px = rgba + (((size_t)y * f + dy) * w + x * f + dx) * 4;
+                    coverage += px[3];
                     for (int c = 0; c < 3; c++)
-                        acc[c] += rgba[(((size_t)y * f + dy) * w + x * f + dx) * 4 + c];
+                        acc[c] += px[c] * px[3];
+                }
             for (int c = 0; c < 3; c++)
-                img.rgb[((size_t)y * img.w + x) * 3 + c] = acc[c] / (f * f);
+                img.rgb[((size_t)y * img.w + x) * 3 + c] = coverage ? acc[c] / coverage : 0;
+            img.alpha[y * img.w + x] = coverage / (f * f);
+            transparent |= coverage < 255 * f * f;
         }
     }
     free(rgba);
+    if (!transparent) { free(img.alpha); img.alpha = NULL; }
     return img;
 }
 
@@ -228,10 +238,33 @@ static int W_Label(const byte *mask, int w, int h, byte val, int *labels, int *a
     return n;
 }
 
+static void W_PhotoBounds(photo_t *ph)
+{
+    ph->x0 = ph->img.w;
+    ph->y0 = ph->img.h;
+    ph->x1 = ph->y1 = -1;
+    for (int y = 0; y < ph->img.h; y++)
+        for (int x = 0; x < ph->img.w; x++) {
+            if (!ph->mask[y * ph->img.w + x]) continue;
+            ph->x0 = MIN(ph->x0, x); ph->x1 = MAX(ph->x1, x);
+            ph->y0 = MIN(ph->y0, y); ph->y1 = MAX(ph->y1, y);
+        }
+    if (ph->x1 < 0)
+        I_Error("%s: couldn't find the figure (is the background plain?)", ph->path);
+}
+
 static void W_Segment(photo_t *ph, const image_t *backdrop)
 {
     const image_t *img = &ph->img;
     int w = img->w, h = img->h, n = w * h;
+    if (img->alpha) {
+        // Authored cutouts already define the silhouette, including white
+        // eyes and holes. Inferring a paper background destroys that mask.
+        ph->mask = I_Malloc(n);
+        for (int i = 0; i < n; i++) ph->mask[i] = img->alpha[i] >= 128;
+        W_PhotoBounds(ph);
+        return;
+    }
     float *bg = I_Malloc((size_t)n * 3 * sizeof(float));
     if (backdrop && backdrop->w == w && backdrop->h == h)
         memcpy(bg, backdrop->rgb, (size_t)n * 3 * sizeof(float));
@@ -302,21 +335,7 @@ static void W_Segment(photo_t *ph, const image_t *backdrop)
         if (labels[i] >= 0 && !touches[labels[i]] && areas[labels[i]] * 300 < n)
             m[i] = 1;
 
-    ph->x0 = w;
-    ph->y0 = h;
-    ph->x1 = ph->y1 = -1;
-    for (int y = 0; y < h; y++) {
-        for (int x = 0; x < w; x++) {
-            if (!m[y * w + x])
-                continue;
-            ph->x0 = MIN(ph->x0, x);
-            ph->x1 = MAX(ph->x1, x);
-            ph->y0 = MIN(ph->y0, y);
-            ph->y1 = MAX(ph->y1, y);
-        }
-    }
-    if (ph->x1 < 0)
-        I_Error("%s: couldn't find the figure (is the background plain?)", ph->path);
+    W_PhotoBounds(ph);
     free(touches);
     free(labels);
     free(tmp);
@@ -538,10 +557,12 @@ void W_PhotoFinish(photoset_t *ps, const char *backdroppath, int reference, int 
         free(s->rgb);
         free(s->on);
         free(ps->photos[i].img.rgb);
+        free(ps->photos[i].img.alpha);
         free(ps->photos[i].mask);
     }
     g->numframes = ps->count;
     free(spr);
     free(backdrop.rgb);
+    free(backdrop.alpha);
     I_Log("W_PhotoFinish: %s: %d photos, scale %.3f", ps->name, ps->count, scale);
 }

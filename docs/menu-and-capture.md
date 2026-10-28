@@ -131,7 +131,7 @@ Application Support directory; reopening resumes at the first missing pose.
 Publishing removes the background and aligns all frames on the device, writes
 a regular creature file in a hidden staging directory and atomically moves the
 completed folder into the app's roster. The existing C photo pipeline then
-supplies its shared 31-colour palette, 92-world-unit height, 640×480 photo detail,
+supplies its shared 31-colour palette, 92-world-unit height, 184-pixel standing sprite,
 foot hotspots and separate portrait. Selection refreshes as the camera closes.
 
 The app keeps original photos and recorded movies under the fighter's `sources/`

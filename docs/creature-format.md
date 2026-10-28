@@ -145,7 +145,9 @@ end
 
 When the file loads, every photo is processed together (`src/engine/w_photo.c`):
 
-1. **Background removed.** With a `backdrop` shot, the photo is compared
+1. **Background removed.** Transparent PNG cutouts use their alpha mask directly,
+   preserving white eyes and transparent holes without adding a paper fringe.
+   Opaque camera photos still need segmentation. With a `backdrop` shot, the photo is compared
    against it; without one, a smooth colour model is fitted to the photo's
    border. Colour differences count fully. Pixels darker than the paper count
    only a little, so the figure's shadow stays background. Confident pixels
@@ -153,10 +155,13 @@ When the file loads, every photo is processed together (`src/engine/w_photo.c`):
    white eyes and pale parts survive. Only the main blob is kept, and small
    holes are filled.
 2. **One scale for everything.** Set so the first `stand` photo's figure is
-   `height` world units tall (twice that many screen pixels at 640×480).
+   `height` world units tall (twice that many screen pixels at 640×400).
    Consistent framing between shots therefore matters. A second sample from
    each source supplies the display pixels; the original silhouette still
    determines gameplay bounds and reach.
+   Bundled concept sprites are exported at this final display size (184 pixels
+   tall for a 92-unit standing figure), with one shared scale and foot baseline
+   across the animation. The larger source atlases remain in `assets/concepts/`.
 3. **One palette.** The figure pixels of all photos are reduced to 31 colours
    (median cut), like a Primal Rage fighter. `palette 1` and `palette 2` are
    colour-swapped versions; the second player uses `alt` (default 1) in a

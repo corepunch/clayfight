@@ -2,7 +2,6 @@
 name BOXER
 art photo right
 height 92
-backdrop photos/backdrop.png
 speed 1.4 1.1 7.5
 width 25
 

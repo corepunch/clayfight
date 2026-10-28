@@ -24,10 +24,11 @@ the CPU.
 The game renders at **640×400**, exactly twice the DOS version's **320×200**
 frame, with square pixels and nearest-neighbor presentation. Drawing and
 simulation use that 320×200 coordinate space; legacy DOS sprites, scenery and
-fonts enlarge 2×. Photo creatures retain a separate image with two pixels per
-world unit sampled from their 640×480 source photos, with the same 31-colour
-palette, hotspot and simulation silhouette. Their extra detail is real source
-detail rather than enlarged low-resolution pixels.
+fonts enlarge 2×. Custom fighter PNGs use two pixels per world unit: the bundled
+clay figures stand about 184 pixels tall, with tightly fitted canvases shared
+across their poses. Transparent cutouts retain their alpha mask without a white
+paper backing. The game keeps the same 31-colour palette, hotspot and simulation
+silhouette.
 
 The four saved clay action sheets are playable prototypes: `BOXER`, `LIZARD`,
 `CYCLOPS`, and `CRAB`. Try `./clayfight -fight boxer lizard`. Their stand pose is
@@ -35,6 +36,13 @@ The four saved clay action sheets are playable prototypes: `BOXER`, `LIZARD`,
 sheets. Walking and other missing reactions use fallback poses, so this is a
 resolution and art experiment, not a finished animation set. Rebuild the sliced
 photos and creature files with `python3 tools/import_concepts.py` (needs Pillow).
+The atlas manifest stores explicit pixel rectangles and a foot `pivot` relative
+to each rectangle. The four columns describe pose order; their crop widths vary
+to keep extended fists and feet intact. Align each pivot to the same destination
+point when displaying the atlas directly. The importer exports every pose at
+the final 2× sprite size on a shared transparent canvas with aligned feet,
+and validates crop edges and pivots. After
+rebuilding, run `python3 tests/concepts.py` to check all 64 poses and exports.
 
 Developer switches (Doom style): `-data <dir>`, `-creatures <dir>`,
 `-fight sauron sauron [-cpu] [-stage n]`, `-warp select`, `-script`, `-boxes`,

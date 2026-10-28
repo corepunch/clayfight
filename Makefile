@@ -24,7 +24,7 @@ creatures: creatures/primalrage/sauron.txt
 creatures/primalrage/sauron.txt: primalrage/PRAGE.EXE tools/pr2creature.py tools/extract_scripts.py
 	python3 -I tools/pr2creature.py primalrage creatures/primalrage
 
-check: all checkvideo checkflow checkcapture checkretail
+check: all checkvideo checkphoto checkflow checkcapture checkretail
 	./clayfight -checkanims
 
 checkvideo: build/checkvideo
@@ -33,6 +33,15 @@ checkvideo: build/checkvideo
 build/checkvideo: tests/video.c src/engine/v_video.c $(HDRS)
 	@mkdir -p build
 	$(CC) $(CFLAGS) -o $@ tests/video.c src/engine/v_video.c -lm
+
+checkphoto: build/checkphoto
+	./build/checkphoto
+
+build/checkphoto: tests/photo.c src/engine/w_photo.c $(HDRS)
+	@mkdir -p build
+	$(CC) $(CFLAGS) -o $@ tests/photo.c src/engine/w_photo.c -lm
+
+.PHONY: checkphoto
 
 build/%.o: src/%.c $(HDRS)
 	@mkdir -p $(dir $@)
