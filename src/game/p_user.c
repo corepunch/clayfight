@@ -30,7 +30,7 @@ int P_ForwardInput(const fighter_t *f, int buttons)
 void P_PlayerThink(fighter_t *f, const fighter_t *opp)
 {
     int buttons = f->cmd.buttons;
-    int pressed = buttons & ~f->oldbuttons;
+    int pressed = f->cmd.explicit_edges ? f->cmd.pressed : buttons & ~f->oldbuttons;
     f->oldbuttons = buttons;
     if (f->dead)
         return;

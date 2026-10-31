@@ -64,7 +64,11 @@ names follow Doom's, so its source is a map to this one.
 | | | `g_game sel_main m_menu d_main` | game flow and bindings, character select (Doom: `wi_stuff`), title, startup and the 60Hz loop |
 
 As in Doom, input becomes a `ticcmd_t` each tic; the CPU opponent fills in the
-same `ticcmd_t`, so humans and AI share every rule.
+same `ticcmd_t`, so humans and AI share every rule. CPUs use Primal Rage's
+original per-fighter matchup, distance and difficulty tables, playing its
+joystick macros with separate pressed and held input bits. Original fighters
+inherit their own style; photographed fighters default to Sauron, overridable
+with `ai 0..6` in their creature file. See [the AI decoding and verification](docs/primal-rage-ai.md).
 
 ## Creature files and Primal Rage's own scripts
 
@@ -90,6 +94,15 @@ tic by tic, and all 266 animations and moves match. How the original works,
 and why we convert instead of following it, is in
 [docs/primal-rage-scripts.md](docs/primal-rage-scripts.md).
 `tools/extract_scripts.py` dumps all the tables to JSON.
+`tools/primal_ai.py` also exports just the fully decoded AI tables. These
+remain derived game data, read from your local `PRAGE.EXE`, and are not committed.
+
+`make checkai` tests runtime AI integration across all 49 original matchups
+and three menu difficulties. `make checkai-original AI_PYTHON=/path/to/venv/bin/python`
+compares the production C implementation with the original x86 routines in
+Unicorn; install the small `tests/requirements-ai.txt` into that venv first.
+It checks decisions and macro inputs, while Clayfight's physics and unavailable
+special-move handlers remain separate fidelity limits.
 
 `make check` also tests legacy sprite enlargement, native photo detail,
 clipping, hotspots, mirroring, scaling and hit flashes. `make checkvideo` runs
@@ -104,7 +117,11 @@ these renderer checks independently of the original game data.
   select-screen portraits and name plates, title art, both fonts, sounds.
 * From `PRAGE.EXE`, via the converter: animation scripts, move table, attack
   boxes, fighter palettes.
+* Original CPU matchup/distance bands, ten-slot macro matrices, difficulty
+  weights and joystick macro timing, read from `PRAGE.EXE` at runtime.
 * Still rebuilt by Clayfight: hurt boxes (from the sprite silhouettes), stage
   layouts, palettes for unmapped artwork (chosen automatically as the smoothest
-  result), sound triggers, CPU AI. The select temple and large portraits use
+  result), sound triggers, physics and the adapter from game state to AI observations.
+  The AI uses deterministic host randomness in place of the DOS hardware timer.
+  The select temple and large portraits use
   explicit palette bindings; original fighter palettes come from PRAGE.EXE.

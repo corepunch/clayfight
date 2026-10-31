@@ -17,7 +17,8 @@ Signing & Capabilities settings, select the device, and Run.
 
 The original Primal Rage PC files must be in `../primalrage/`. The build phase
 converts the seven creature definitions and bundles the local `.GRA` data,
-INDEX and clay fighters. Generated game data remains ignored by Git.
+INDEX, `PRAGE.EXE` (needed for the original CPU AI) and clay fighters.
+Generated game data remains ignored by Git.
 
 - `AppDelegate.m`: scene lifecycle, 60 Hz game host, framebuffer presentation,
   touch controls, application storage and bundled-roster installation.

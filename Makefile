@@ -24,7 +24,7 @@ creatures: creatures/primalrage/sauron.txt
 creatures/primalrage/sauron.txt: primalrage/PRAGE.EXE tools/pr2creature.py tools/extract_scripts.py
 	python3 -I tools/pr2creature.py primalrage creatures/primalrage
 
-check: all checkvideo checkphoto checkflow checkcapture checkretail
+check: all checkvideo checkphoto checkflow checkcapture checkretail checkai
 	./clayfight -checkanims
 
 checkvideo: build/checkvideo
@@ -72,6 +72,25 @@ checkcapture: all
 	python3 -B tests/capture.py
 
 .PHONY: checkcapture
+
+checkai: all build/checkai
+	./build/checkai
+
+build/checkai: tests/ai.c $(filter-out build/game/d_main.o,$(OBJS)) $(HDRS)
+	$(CC) $(CFLAGS) -o $@ tests/ai.c $(filter-out build/game/d_main.o,$(OBJS)) $(LDLIBS)
+
+# Original x86 differential checks need only a small Unicorn Python wheel.
+# Set AI_PYTHON to a venv with tests/requirements-ai.txt installed.
+AI_PYTHON ?= python3
+AI_SHARED_FLAGS = $(if $(filter Darwin,$(shell uname -s)),-dynamiclib,-shared -fPIC)
+build/ai-oracle.so: src/game/p_enemy.c src/engine/w_exe.c tests/ai_bridge.c $(HDRS)
+	@mkdir -p build
+	$(CC) $(CFLAGS) -Werror -DCLAYFIGHT_AI_ORACLE $(AI_SHARED_FLAGS) -o $@ src/game/p_enemy.c src/engine/w_exe.c tests/ai_bridge.c -lm
+
+checkai-original: build/ai-oracle.so
+	$(AI_PYTHON) -B tests/ai_original.py $(or $(GAME_DATA),primalrage) $<
+
+.PHONY: checkai checkai-original
 
 # Native targets compile the shared C engine with UIKit/AVFoundation, without SDL.
 ios-simulator:

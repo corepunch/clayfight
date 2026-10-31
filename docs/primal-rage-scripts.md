@@ -21,7 +21,7 @@ compiled into the executable as data tables, plus native code.
 | Move table | 64 moves per fighter, 3 parallel tables | Damage, stun (`A[1]`), strength (`A[4]`), hit class (`C[2]`), score, link to a row script or to a native handler for specials. |
 | Attack boxes | 5 per move | (step, box, active tics); boxes are (x, y, w, h) in 3-pixel units, placed from the frame anchor. |
 | Special inputs | 32 per fighter | 8-step patterns: require / reject / abort / time window, facing-relative. |
-| AI | per fighter | Named joystick macros (`mv_*`) plus weighted random choice tables. |
+| AI | per fighter and opponent | Distance bands (`atmn_*`) select ten-slot macro matrices (`mvm_*`); separate difficulty weights select a joystick macro (`mv_*`). See [the AI specification](primal-rage-ai.md). |
 
 **The bytecode is a mini-language, not a scripting language.** Words below
 0x8000 show a frame. The opcodes cover:
@@ -54,6 +54,8 @@ Through the converted creature files (and the same in `-script` mode):
 - the game's own attack boxes, keyed by animation step;
 - each fighter's palette (sub-palette 1 for Vertigo, 3 for the other six,
   read from the game's player object descriptors).
+- original CPU matchup/distance dispatch, difficulty weights and input macros,
+  read directly from `PRAGE.EXE`; [checked against original x86](primal-rage-ai.md).
 
 Native routines are bound by address to C functions in `p_script.c` (12 so
 far; no unknown calls remain in the core rows). The converter turns the ones
@@ -64,7 +66,8 @@ Still Clayfight's own logic:
 - which row plays when (walk, block, fall, get up);
 - jump physics;
 - hurt boxes (from sprite silhouettes);
-- CPU AI;
+- the adapter from Clayfight's fighter states/positions to native AI observations,
+  and deterministic randomness replacing the original hardware-timer entropy;
 - rounds, stage layout, unmapped menu palettes, sound triggers.
 
 Not wired yet: special moves (input tables are decoded; the handlers are

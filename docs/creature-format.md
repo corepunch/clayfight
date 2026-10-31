@@ -59,6 +59,7 @@ end
 | `speed WALK BACK JUMP` | Pixels per tic walking forward and back; jump take-off speed. |
 | `width N` | Body width used to keep fighters apart. |
 | `prage N` | Character number in `PRAGE.EXE`, used by `-script` and `-checkanims`. |
+| `ai N` | Original CPU style, `0..6`: Sauron, Blizzard, Talon, Vertigo, Armadon, Diablo, Chaos. Defaults to `prage`, or Sauron for photos; also supplies the matchup identity when fighting custom creatures. |
 
 ## Animations
 

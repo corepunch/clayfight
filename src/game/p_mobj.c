@@ -253,6 +253,7 @@ static bool P_ScriptAnim(fighter_t *f, animnum_t anim)
     if (anim < 0 || anim >= NUMSTDANIMS)
         return false;
     int row = scriptrows[anim];
+    f->move = -1;
     f->smove.valid = false;
     f->attack = NULL;
     f->pstate = (state_t){.anim = anim, .kind = f->def->anims[anim].kind};
@@ -267,6 +268,7 @@ static bool P_ScriptMove(fighter_t *f, int slot, animnum_t next)
 {
     if (!PS_Move(f->def->codeindex, slot, &f->smove))
         return false;
+    f->move = slot;
     f->smoveattack = (attackinfo_t){
         .damage = f->smove.damage,
         .level = f->smove.hitclass == 4 || f->smove.hitclass == 5 ? LOW : HIGH,

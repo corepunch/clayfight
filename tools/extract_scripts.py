@@ -64,8 +64,8 @@ Main facts used (see the report / comments at each table for the evidence):
         +8 u16 flags, +0xA u16, +0xC u16, +0x10 palette ref (fileid<<23 | offset).
     Frames shown by an object use that object's palette -> palette assignment for
     selection screen / stages / HUD frames.
-  * AI data per character (two-letter codes bb,cc,dd,rr,ss,tt,vv): table of name string
-    pointers (mv_*, mvm_*, atmn_*), followed by raw data and a parallel pointer table.
+  * AI data per character (two-letter codes bb,cc,dd,rr,ss,tt,vv): runtime macro and matrix pointer tables from the dispatcher,
+    with separate 7-by-7 matchup/context tables.
     mv_* = AI joystick macros: list of (input pattern, ticks) terminated by 0xFFFF.
 
 Output JSON (scripts.json):
@@ -85,7 +85,8 @@ Output JSON (scripts.json):
     special_inputs{ctrl_type2_and_cpu|ctrl_types_0_4_6: [{slot, move_id, flag6, flag7,
         steps[{require, reject, abort, window, *_names}]}]}
   common_animations[]           code-referenced scripts not attributable to one fighter
-  ai{code: {names_table, pointer_table, entries[{name, addr, macro|raw10|choices}]}}
+  ai{code: {macros, matrices{macro_ids}, responses{bands,search_window}, matchups}}
+  ai_weights[3][8][10]           signed percentage weights per profile/difficulty/column
   object_descriptors[]          {addr, script, cls, init_ticks, attr, flags, palette_file,
                                  palette_index, frames[[file,index]]}
   palette_assignment{gra_file: {frame_index: [[palette_file, palette_index], ...]}}
@@ -835,63 +836,11 @@ def main():
     out['characters'] = chars
     out['row_default_durations_from_code'] = {str(k): v for k, v in rowdur.items()}
 
-    # ---- AI blocks
-    ai = {}
-    addr = 0x80000
-    blocks = []
-    # locate name tables: runs of pointers to "mv_xx_" strings
-    for ci, c in enumerate(CHARS):
-        pass
-    ptrs = sorted(p for p in mem.ptrs if 0x80000 <= p < 0xE6000)
-    def isname(v):
-        try:
-            s = mem.cstr(v)
-        except Exception:
-            return None
-        return s if (s[:3] in ('mv_', 'mvm', 'atm')) else None
-    runs, cur = [], None
-    for p in ptrs:
-        s = isname(mem.u32(p))
-        if s and cur and p == cur[1]:
-            cur[1] = p + 4; cur[2].append(s)
-        else:
-            if cur and len(cur[2]) > 100:
-                runs.append(cur)
-            cur = [p, p + 4, [s]] if s else None
-    if cur and len(cur[2]) > 100:
-        runs.append(cur)
-    for start, end, names in runs:
-        code = names[0].split('_')[1]
-        # parallel pointer table = first relocated dword after the raw data block
-        pt = min(p for p in mem.ptrs if p >= end)
-        entries = []
-        for i, nm in enumerate(names):
-            tgt = mem.u32(pt + 4 * i)
-            e = dict(name=nm, addr=hex(tgt))
-            if nm.startswith('mv_'):
-                seq = []
-                q = tgt
-                for _ in range(64):
-                    inp, t = mem.u32(q), mem.u32(q + 4)
-                    if inp == 0xFFFF:
-                        break
-                    seq.append([hex(inp), t, decode_pattern(inp)])
-                    q += 8
-                e['macro'] = seq
-            elif nm.startswith('mvm'):
-                e['raw10'] = list(mem.rd(tgt, 10))
-            else:
-                ent = []
-                q = tgt
-                for _ in range(80):
-                    b = mem.rd(q, 4)
-                    ent.append(list(b)); q += 4
-                    if b[3] == 0xFF or b == b'\0\0\0\0':
-                        break
-                e['choices'] = ent  # (mvm index, flag, lo, hi) random-range entries (0..255)
-            entries.append(e)
-        ai[code] = dict(names_table=hex(start), pointer_table=hex(pt), entries=entries)
-    out['ai'] = ai
+    # ---- AI: authoritative runtime pointer tables, not name-run guesses
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from primal_ai import extract_ai, weights
+    out['ai'] = extract_ai(mem)
+    out['ai_weights'] = weights(mem)
 
     # ---- object descriptors -> palette assignment
     descs = []

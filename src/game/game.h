@@ -40,6 +40,8 @@ enum {
 
 typedef struct {
     int buttons;
+    int pressed; // CPU macros supply original edge bits independently of held bits
+    bool explicit_edges;
 } ticcmd_t;
 
 // Arena geometry, in world pixels. z grows upward from the floor (0).
@@ -158,6 +160,7 @@ typedef struct {
     char name[32];
     char prefix[8]; // art files S04<prefix>*.GRA, voice S04<prefix>SD.GRA
     int codeindex; // character number in PRAGE.EXE (-script mode), -1 none
+    int aiindex; // -1 inherits codeindex (or Sauron for photos); otherwise 0..6
     int portrait, label; // S04SELMO.GRA frames: 5-frame portrait, name plate
     gra_t *photoport; // photographed close-up, separate from the animation scale
     int palette, altpalette; // sub-palettes of the base art file
@@ -315,6 +318,34 @@ void R_PrepareStage(stage_t *stage);
 void R_DrawStage(const stage_t *stage, int camx);
 void R_RenderFight(void);
 
+// --- p_enemy.c: original PC AI ------------------------------------------
+// The original's 64-byte decision state, including data addresses (never
+// host pointers). Keeping its layout permits byte-for-byte x86 oracle checks.
+typedef struct {
+    uint32_t decisions, active, column, ticks;
+    int32_t previous;
+    uint32_t response, matrix, macro, weights;
+    int32_t oldopponent, opponent;
+    byte context, matrixid, macroid, profile, step, steptics, reserved[2];
+    uint32_t response_name, matrix_name, macro_name;
+} prai_t;
+
+// Observations consumed by 0x46EE8, named by their original player offsets.
+// special_idle is the native predicate (thinker==0x231FC && duration==0).
+typedef struct {
+    byte motion, action, stance, move, special, started;
+    bool forward, special_idle, incoming;
+} prai_view_t;
+
+bool PA_Init(void); // validate the installed executable; no guessed fallback
+void PA_Observe(prai_t *a, const prai_view_t *opp);
+void PA_Response(prai_t *a, int character, int opponent, const prai_view_t *opp);
+void PA_Matrix(prai_t *a, int character, int distance64);
+void PA_Macro(prai_t *a, int character, int difficulty, int roll);
+uint16_t PA_Input(uint32_t pattern, bool faceleft);
+uint32_t PA_Tick(prai_t *a, int character, int opponent, const prai_view_t *self,
+                 const prai_view_t *opp, int distance64, int difficulty, int roll);
+
 // --- p_*.c: play simulation: fighters and the level (cf. p_local.h) ---------
 // fighter_t (cf. mobj_t + player_t)
 typedef struct fighter_s {
@@ -338,7 +369,7 @@ typedef struct fighter_s {
     ticcmd_t cmd;
     int oldbuttons;
     // CPU brain (p_enemy.c)
-    int aiwait, aihold, aiplan;
+    prai_t ai;
     // the move in progress
     int move; // slot in def->moves, -1 none
     const attackinfo_t *attack; // NULL when not attacking

@@ -129,6 +129,7 @@ fighterdef_t *P_LoadCreature(const char *path)
         I_Error("can't open %s", path);
     fighterdef_t *def = I_Malloc(sizeof *def);
     def->codeindex = -1;
+    def->aiindex = -1;
     def->facesleft = true;
     def->walkspeed = 1.5f;
     def->backspeed = 1.2f;
@@ -301,6 +302,10 @@ fighterdef_t *P_LoadCreature(const char *path)
             snprintf(portraitpath, sizeof portraitpath, "%s/%s", dir, ps.tok[1]);
         } else if (!strcasecmp(cmd, "prage")) {
             def->codeindex = (int)P_Num(&ps, 1);
+        } else if (!strcasecmp(cmd, "ai")) {
+            def->aiindex = (int)P_Num(&ps, 1);
+            if (def->aiindex < 0 || def->aiindex > 6)
+                P_Fail(&ps, "ai needs a Primal Rage character number, 0..6");
         } else if (!strcasecmp(cmd, "palette")) { // palette N [alt M]
             def->palette = def->altpalette = (int)P_Num(&ps, 1);
             if (ps.ntok > 3 && !strcasecmp(ps.tok[2], "alt"))
