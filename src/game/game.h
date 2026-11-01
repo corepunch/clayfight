@@ -322,6 +322,7 @@ typedef struct fighter_s {
     const palette_t *pal;
     float x, z; // z: height above the floor
     float momx, momz;
+    float airlift; // ROM MOVE_Y since takeoff: the air pivot's height above z
     int facing; // +1 right, -1 left
     const state_t *state;
     float tics; // left on the current frame
@@ -399,7 +400,7 @@ bool P_SetAnim(fighter_t *f, animnum_t anim);
 bool P_StartMove(fighter_t *f, int slot, animnum_t next);
 bool P_InAnim(const fighter_t *f, animnum_t anim);
 bool P_IsAirborne(const fighter_t *f);
-int P_SpriteLift(const fighter_t *f); // air art's lowest pixel sits at the simulated feet
+int P_SpriteLift(const fighter_t *f); // height of an air pose's pivot above the simulated feet
 void P_FighterThinker(fighter_t *f);
 void P_AnimTick(fighter_t *f); // advance the animation only
 

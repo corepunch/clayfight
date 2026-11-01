@@ -37,7 +37,7 @@ static int slots[MAXROSTER + 7], numslots;
 #define TEMPLE_SX (336.f / 272.f)
 #define TEMPLE_SY (240.f / 170.f)
 #define PODIUM_TOP 200
-#define PREVIEW_FEET (PODIUM_TOP + 4)
+#define PREVIEW_FEET PODIUM_TOP
 static int TileX(int cell) { return (int)lroundf(TEMPLE_X + tilex[cell] * TEMPLE_SX); }
 static int TileY(int cell) { return (int)lroundf(TEMPLE_Y + tiley[cell] * TEMPLE_SY); }
 
@@ -226,10 +226,10 @@ static void SEL_Preview(int pl)
     float sc = 94.f / height;
     bool flip = (d->facesleft == (pl == 0)) != st->hflip;
     int cx = (pl ? 252 : 84);
-    // The stand hotspot is the foot position. Centring the whole bitmap
-    // includes long tails and pushes the feet off the podium toward P2.
+    // The stand pivot is the foot position, on the podium. Aligning the bitmap
+    // instead lets long tails push the feet off it and bob the breathing body.
     int x = cx;
-    int y = PREVIEW_FEET - (int)lroundf((p->h - p->y) * sc);
+    int y = PREVIEW_FEET;
     V_DrawPatchScaled(x, y, p, &d->base->palettes[d->palette], flip ? V_FLIP : 0, sc, sc);
     float labelscale = MIN(0.65f, 132.f / V_TextWidth(FONT_BIG, d->name));
     int labelx = pl ? 294 - (int)(V_TextWidth(FONT_BIG, d->name) * labelscale) : 26;

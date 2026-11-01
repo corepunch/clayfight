@@ -263,7 +263,7 @@ static int Operand(psanim_t *a, int mode, int sel, bool ext, uint32_t *p)
         return v;
     }
     default: { // 0x6000: value from the data table, indexed by a variable
-        int tabletype = X_U16(*p + 2) & 0xf000;
+        int tabletype = X_U16(*p) & 0xf000;
         *p += 4;
         int idx = GetVar(a, sel);
         if (!a->table)

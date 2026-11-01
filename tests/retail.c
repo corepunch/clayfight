@@ -119,7 +119,24 @@ static void air_checks(void)
     level.fighters[1].x = -10000;
     level.camx = 0;
     int checked = 0;
+    // Arcade jumps lift the torso pivot by the ROM's MOVE_Y, not by each pose's
+    // lowest pixel, so swinging limbs and tails cannot move the body.
+    const int lifts[7] = {102, 70, 77, 92, 73, 102, 70};
+    for (int i = 0; i < 7; i++) {
+        P_SpawnFighter(f, roster[i], 0, 160, roster[i]->palette);
+        f->momz = f->def->jumpspeed;
+        P_SetAnim(f, ANIM_JUMP);
+        assert(P_SpriteLift(f) == 0); // the windup still has foot pivots
+        for (; f->z >= 0; f->z += f->momz, f->momz -= GRAVITY) {
+            P_AnimTick(f);
+            int lift = P_SpriteLift(f);
+            if (f->z >= 30) // Armadon's script also moves its pivot mid-air
+                assert(i == 4 ? lift >= lifts[i] : lift == lifts[i]);
+            assert(P_StatePatch(f->state)->by1 - lift - f->z <= 7); // never deep in the floor
+        }
+    }
     for (int i = 0; i < numroster; i++) {
+        if (roster[i]->codeindex >= 0) continue;
         P_SpawnFighter(f, roster[i], 0, 160, roster[i]->palette);
         bool seen[12000]={0};
         for (int s = 0; s < f->def->numstates; s++) {
@@ -152,9 +169,13 @@ static void air_checks(void)
     // Reproduce the reported Blizzard/Talon scene just above the floor.
     G_InitNew(roster[1], roster[2], cpu, &stages[2]);
     f = &level.fighters[1];
+    f->momz = f->def->jumpspeed;
     P_SetAnim(f, ANIM_JUMP);
-    f->state = &f->def->states[f->def->anims[ANIM_JUMP].first + f->def->anims[ANIM_JUMP].count - 1];
-    f->z = 8;
+    do {
+        P_AnimTick(f);
+        f->z += f->momz;
+        f->momz -= GRAVITY;
+    } while (f->momz > 0 || f->z > 8);
     R_RenderFight(); ST_Drawer(match.wins);
     I_SaveScreenshot(screen, "build/retail-jump.bmp");
     printf("air: %d rendered takeoff/apex/landing poses and hurt boxes stay above their foot plane\n", checked);

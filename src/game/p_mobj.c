@@ -13,6 +13,7 @@
 bool p_scripted;
 
 #define DOWN_TICS 40
+#define FOOT_DEPTH 6 // standing art's feet reach this far below its pivot
 
 static void P_ScriptThink(fighter_t *f);
 static bool P_ScriptAnim(fighter_t *f, animnum_t anim);
@@ -45,12 +46,18 @@ bool P_IsAirborne(const fighter_t *f)
 
 int P_SpriteLift(const fighter_t *f)
 {
-    // Ground poses have foot hotspots; the original air poses often have
-    // torso hotspots instead. Our z is always measured at the feet. Keep
-    // those poses above that plane, including during takeoff and landing.
+    // Ground poses have foot pivots; the original air poses have torso pivots
+    // instead, and the scripts raise the object by the difference with MOVE_Y.
+    // Our z is always measured at the feet. A pose's lowest pixel must not set
+    // this, or a swinging tail would move the whole body; it only stops a pose
+    // sinking further into the floor than standing art does near touchdown.
     if (f->state->kind != K_AIR)
         return 0;
     const patch_t *p = P_StatePatch(f->state);
+    if (p_scripted && f->def->codeindex >= 0) {
+        int floorlift = p && p->hasbox ? p->by1 - FOOT_DEPTH - (int)lroundf(f->z) : 0;
+        return MAX(0, MAX((int)lroundf(f->airlift), floorlift));
+    }
     return p && p->hasbox ? MAX(0, p->by1 + 1) : 0;
 }
 
@@ -223,6 +230,7 @@ static void P_ScriptMotion(fighter_t *f)
 {
     if (f->anim.movex && f->pstate.kind != K_AIR)
         f->x += f->anim.movex * ARCADE_XSCALE * f->facing; // positive = forward
+    f->airlift = f->pstate.kind == K_AIR ? f->airlift + f->anim.movey : 0;
     if (f->anim.flipfacing)
         f->facing = -f->facing;
 }
@@ -255,7 +263,8 @@ static bool P_ScriptAnim(fighter_t *f, animnum_t anim)
 {
     if (anim < 0 || anim >= NUMSTDANIMS)
         return false;
-    int row = scriptrows[anim];
+    // Takeoff plays the whole jump; ROW_JUMP is the descent an air move resumes.
+    int row = anim == ANIM_JUMP && f->airlift <= 0 ? ROW_JUMPMOVE : scriptrows[anim];
     f->move = -1;
     f->smove.valid = false;
     f->attack = NULL;

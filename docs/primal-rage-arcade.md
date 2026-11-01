@@ -33,6 +33,12 @@ from active data. Custom clay photographs remain in `data/creatures/`.
 | Fighter HUD names | RLE nameplates 314–320; descriptor pointers `0x73e74`, palettes `0x64d02 + character×128` | Original name artwork; custom names use the intro typeface, fitted to the same HUD slots |
 | Effects and seven voice tables | CAGE boot chip 1078a and sound chips 0075/0077 | Standalone BSD-licensed TMS320C3x interpreter, native ROM driver, four DAC channels mixed into cached 11025 Hz mono PCM; shared stereo panning |
 
+Motion objects carry signed pivots: at the floor line for grounded poses and on
+the torso for air poses. Podium previews and fights place the pivot, never the
+bitmap's bottom, because tails swing below the feet. A jump starts on row 12:
+its `MOVE_Y` table (102, 70, 77, 92 and 73 units for the five body types) lifts
+the torso pivot once at takeoff. Row 4 is the descent an air move resumes.
+
 The sound adapter reads victory, attack and pain command tables at `0x6b0b0`,
 `0x6e3e8` and `0x69c64`. Generic impact commands 8064–806A, block 806B,
 swish 8049, thud 806F, crowd 80E3 and select 806C feed the existing events.
