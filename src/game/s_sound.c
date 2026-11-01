@@ -1,85 +1,44 @@
-// s_sound.c -- sound effect registry and playback (cf. s_sound.c, sounds.c)
-//
-// Generic effects live in S04SD*.GRA (one sample each); every fighter also
-// has S04<prefix>SD.GRA with its voice samples. Which file is which effect is
-// a best guess from the names: the trigger tables are in PRAGE.EXE.
-
-#include <stdio.h>
+// Arcade CAGE commands. Character tables are read from the 68020 program ROM.
 #include <string.h>
-
 #include "game/game.h"
-
 #define MAXVARIANTS 5
-
-static const char *sfxfiles[NUMSFX][MAXVARIANTS] = {
-    [sfx_hit] = {"S04SDH1.GRA", "S04SDH2.GRA", "S04SDH3.GRA", "S04SDH4.GRA", "S04SDH5.GRA"},
-    [sfx_hithard] = {"S04SDH6.GRA", "S04SDH7.GRA", "S04SDH8.GRA", "S04SDH9.GRA"},
-    [sfx_block] = {"S04SDBCR.GRA"},
-    [sfx_swish] = {"S04SDSWD.GRA", "S04SDSWR.GRA"},
-    [sfx_thud] = {"S04SDT1.GRA", "S04SDT2.GRA", "S04SDQUK.GRA"},
-    [sfx_crowd] = {"S04SDC1.GRA", "S04SDC2.GRA", "S04SDC3.GRA"},
-    [sfx_select] = {"S04SDZAP.GRA"},
+static const int commands[NUMSFX][MAXVARIANTS] = {
+    [sfx_hit] = {0x8064,0x8065,0x8066,0x8067},
+    [sfx_hithard] = {0x8068,0x8069,0x806a},
+    [sfx_block] = {0x806b},
+    [sfx_swish] = {0x8049},
+    [sfx_thud] = {0x806f},
+    [sfx_crowd] = {0x80e3},
+    [sfx_select] = {0x806c},
 };
-
-static sfxdata_t *sfx[NUMSFX][MAXVARIANTS];
-static int nvariants[NUMSFX];
-
-typedef struct {
-    char prefix[8];
-    sfxdata_t *samples;
-    int count;
-} voice_t;
-
-#define MAXVOICES 8
-static voice_t voices[MAXVOICES];
-static int numvoices;
-
+static const sfxdata_t *effects[NUMSFX][MAXVARIANTS], *voices[7][4];
+static const char *const prefixes[]={"REX","KON","TAL","COB","SPI","DIA","HAV"};
 void S_Init(void)
 {
     I_InitSound();
-    for (int i = 0; i < NUMSFX; i++) {
-        for (int k = 0; k < MAXVARIANTS && sfxfiles[i][k]; k++) {
-            sfxdata_t *s;
-            if (W_LoadSounds(sfxfiles[i][k], &s) > 0)
-                sfx[i][nvariants[i]++] = s;
-        }
+    for(int i=0;i<NUMSFX;i++)for(int k=0;k<MAXVARIANTS && commands[i][k];k++)
+        effects[i][k]=W_ArcadeSound(commands[i][k]);
+    for(int c=0;c<7;c++){
+        // Victory roar, attack voice and pain voice use the retail lookup tables.
+        voices[c][0]=W_ArcadeSound(X_U16(0x6b0b0+c*2));
+        voices[c][1]=W_ArcadeSound(X_U16(0x6e3e8+c*2));
+        voices[c][2]=voices[c][3]=W_ArcadeSound(X_U16(0x69c64+c*2));
     }
 }
-
 static float S_Sep(float x)
 {
-    return x < 0 ? 0 : ((x - level.camx) / VIEWWIDTH - 0.5f) * 1.2f;
+    return x<0?0:((x-level.camx)/VIEWWIDTH-0.5f)*1.2f;
 }
-
-void S_StartSound(sfxenum_t id, float x, float vol)
+void S_StartSound(sfxenum_t id,float x,float vol)
 {
-    if (!options.sound || !options.volume) return;
-    vol *= options.volume / 10.f;
-    if (!nvariants[id])
-        return;
-    I_StartSound(sfx[id][M_Random() % nvariants[id]], vol, S_Sep(x));
+    if(!options.sound || !options.volume || id<0 || id>=NUMSFX)return;
+    int n=0;while(n<MAXVARIANTS && effects[id][n])n++;
+    if(n)I_StartSound(effects[id][M_Random()%n],vol*options.volume/10.f,S_Sep(x));
 }
-
-static voice_t *S_Voice(const char *prefix)
+void S_StartVoice(const char *prefix,int which,float x,float vol)
 {
-    for (int i = 0; i < numvoices; i++)
-        if (!strcmp(voices[i].prefix, prefix))
-            return &voices[i];
-    if (numvoices == MAXVOICES)
-        return NULL;
-    voice_t *v = &voices[numvoices++];
-    snprintf(v->prefix, sizeof v->prefix, "%s", prefix);
-    char name[32];
-    snprintf(name, sizeof name, "S04%sSD.GRA", prefix);
-    v->count = W_LoadSounds(name, &v->samples);
-    return v;
-}
-
-void S_StartVoice(const char *prefix, int which, float x, float vol)
-{
-    if (!options.sound || !options.volume) return;
-    vol *= options.volume / 10.f;
-    voice_t *v = S_Voice(prefix);
-    if (v && v->count)
-        I_StartSound(&v->samples[which % v->count], vol, S_Sep(x));
+    if(!options.sound || !options.volume)return;
+    for(int c=0;c<7;c++)if(!strcmp(prefix,prefixes[c])){
+        I_StartSound(voices[c][which&3],vol*options.volume/10.f,S_Sep(x));return;
+    }
 }

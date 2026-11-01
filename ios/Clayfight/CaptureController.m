@@ -47,7 +47,7 @@ static UIButton *CFButton(NSString *title,id target,SEL action){UIButton *b=[UIB
 }
 - (void)viewDidLoad {
     [super viewDidLoad];self.overrideUserInterfaceStyle=UIUserInterfaceStyleDark;self.view.backgroundColor=[UIColor colorWithRed:.08 green:.075 blue:.06 alpha:1];self.sessionQueue=dispatch_queue_create("clayfight.camera",DISPATCH_QUEUE_SERIAL);
-    NSURL *posesURL=[NSBundle.mainBundle URLForResource:@"poses" withExtension:@"json"];self.poses=[NSJSONSerialization JSONObjectWithData:[NSData dataWithContentsOfURL:posesURL] options:0 error:nil];self.frames=[NSMutableDictionary dictionary];
+    NSURL *posesURL=[NSBundle.mainBundle URLForResource:@"poses" withExtension:@"json" subdirectory:@"data"];self.poses=[NSJSONSerialization JSONObjectWithData:[NSData dataWithContentsOfURL:posesURL] options:0 error:nil];self.frames=[NSMutableDictionary dictionary];
     [[NSFileManager defaultManager] createDirectoryAtPath:[CFDraft() stringByAppendingPathComponent:@"sources"] withIntermediateDirectories:YES attributes:nil error:nil];
     UIScrollView *scroll=[UIScrollView new];self.scroll=scroll;scroll.translatesAutoresizingMaskIntoConstraints=NO;scroll.keyboardDismissMode=UIScrollViewKeyboardDismissModeOnDrag;[self.view addSubview:scroll];
     self.stack=[UIStackView new];self.stack.axis=UILayoutConstraintAxisVertical;self.stack.spacing=14;self.stack.translatesAutoresizingMaskIntoConstraints=NO;[scroll addSubview:self.stack];

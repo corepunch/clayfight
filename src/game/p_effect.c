@@ -1,44 +1,22 @@
-// p_effect.c -- impact particles (cosmetic; cf. the puff/blood things in p_mobj.c)
-
-#include <math.h>
-
+// Native hit/block contact animations; no square-particle replacement art.
 #include "game/game.h"
 
-static const struct {
-    int count;
-    float speed;
-    pixel_t colors[4];
-} sparks[] = {
-    [SPARK_HIT] = {10, 2.2f, {0xffd02020, 0xffa01010, 0xffffa060, 0xffd02020}},
-    [SPARK_BIG] = {18, 3.0f, {0xffe02020, 0xffa01010, 0xffffd080, 0xffffffff}},
-    [SPARK_BLOCK] = {8, 1.8f, {0xffffe040, 0xffffffff, 0xffff9020, 0xffffe040}},
-};
-
-void P_SpawnSpark(float x, float z, sparkkind_t kind)
+void P_SpawnSpark(float x,float z,sparkkind_t kind)
 {
-    for (int i = 0; i < sparks[kind].count && level.numparticles < MAXPARTICLES; i++) {
-        float a = M_Random() / 256.f * 6.2831853f;
-        float s = sparks[kind].speed * (0.4f + M_Random() / 256.f);
-        level.particles[level.numparticles++] = (particle_t){
-            .x = x, .z = z,
-            .vx = cosf(a) * s,
-            .vz = sinf(a) * s + 1,
-            .life = 14 + (M_Random() & 15),
-            .color = sparks[kind].colors[i & 3],
-        };
-    }
+    if(level.numparticles==MAXPARTICLES)return;
+    particle_t *p=&level.particles[level.numparticles++];
+    *p=(particle_t){.x=x,.z=z,.blocked=kind==SPARK_BLOCK};
+    // All standard arcade moves select 56e28 from their move metadata.
+    // The blocked-contact script 56e36 switches to original colour bank 180.
+    PS_StartScenery(&p->animation,p->blocked?0x56e36:0x56e28,3,0x51f15e);
 }
-
 void P_RunParticles(void)
 {
-    int n = 0;
-    for (int i = 0; i < level.numparticles; i++) {
-        particle_t *p = &level.particles[i];
-        p->x += p->vx;
-        p->z += p->vz;
-        p->vz -= 0.25f;
-        if (--p->life > 0 && p->z > -4)
-            level.particles[n++] = *p;
+    int n=0;
+    for(int i=0;i<level.numparticles;i++){
+        particle_t *p=&level.particles[i];
+        PS_Tick(&p->animation);
+        if(!p->animation.done)level.particles[n++]=*p;
     }
-    level.numparticles = n;
+    level.numparticles=n;
 }

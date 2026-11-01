@@ -43,7 +43,7 @@ class Capture(unittest.TestCase):
     def setUp(self):
         self.tmp=tempfile.TemporaryDirectory(prefix='clay-capture-')
         self.root=Path(self.tmp.name)
-        self.store=capture.CaptureStore(self.root/'creatures',ROOT/'primalrage',ROOT/'clayfight')
+        self.store=capture.CaptureStore(self.root/'creatures',ROOT/'data/primrage',ROOT/'build/clayfight')
 
     def tearDown(self): self.tmp.cleanup()
 
@@ -70,9 +70,7 @@ class Capture(unittest.TestCase):
         self.assertEqual(len(list((folder/'photos').glob('*.png'))),16)
         self.assertIn('portrait photos/portrait.png',(folder/'fighter.txt').read_text())
         self.assertEqual(json.loads((folder/'capture.json').read_text())['poses'],capture.IDS)
-        original=self.store.creatures/'primalrage';original.mkdir()
-        for file in (ROOT/'creatures/primalrage').glob('*.txt'): shutil.copy(file,original)
-        run=subprocess.run([str(ROOT/'clayfight'),'-creatures',str(self.store.creatures),'-fight','testclay','sauron',
+        run=subprocess.run([str(ROOT/'build/clayfight'),'-creatures',str(self.store.creatures),'-fight','testclay','sauron',
              '-cpu','-shots',str(self.root/'fight'),'-tics','1200','-every','1199'],cwd=ROOT,capture_output=True,text=True,timeout=60)
         self.assertEqual(run.returncode,0,run.stderr)
         self.assertTrue((self.root/'fight01199.bmp').is_file())

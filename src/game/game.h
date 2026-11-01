@@ -6,7 +6,7 @@
 #ifndef __GAME__
 #define __GAME__
 
-#include "engine/engine.h"
+#include "game/resources.h"
 
 // --- game rules (cf. doomdef.h) --------------------------------------------
 
@@ -40,18 +40,19 @@ enum {
 
 typedef struct {
     int buttons;
-    int pressed; // CPU macros supply original edge bits independently of held bits
-    bool explicit_edges;
 } ticcmd_t;
 
 // Arena geometry, in world pixels. z grows upward from the floor (0).
-#define ARENA_WIDTH 480
+int R_ArenaWidth(void);
+#define ARENA_WIDTH R_ArenaWidth()
 #define FLOOR_Y (VIEWHEIGHT - 18) // screen row of the floor line
-#define GRAVITY 0.42f
+#define GRAVITY 0.593f
 
 #define ROUND_TIME 60 // seconds
 #define ROUNDS_TO_WIN 2
 #define MAX_HEALTH 100
+#define MAX_BRAIN 100
+#define BRAIN_RECOVERY_DELAY TICRATE
 
 // --- info.c: fighter definitions and state tables (cf. info.h) -------------
 //
@@ -99,10 +100,15 @@ typedef enum {
 
 #define MAXANIMS 64
 
-// Moves: 6 groups x 4 buttons (the same numbering as Primal Rage's move
-// table): stand, close, crouch, jump, power, air -- each HQ HF LQ LF.
+// First 16 slots: stand, close, crouch, jump, each HQ HF LQ LF.
+// Slots 16..23: high/low power pairs for stand, close, crouch, jump.
+// MG_POWER/MG_AIR retain the old file aliases for these last eight slots.
 enum { MG_STAND, MG_CLOSE, MG_CROUCH, MG_JUMP, MG_POWER, MG_AIR, NUMMOVEGROUPS };
 #define NUMMOVES (NUMMOVEGROUPS * 4)
+#define MP_STAND 16
+#define MP_CLOSE 18
+#define MP_CROUCH 20
+#define MP_JUMP 22
 #define MAXBOXES 32
 
 typedef enum { HIGH, LOW } attacklevel_t;
@@ -158,10 +164,9 @@ typedef struct {
 // fighterdef_t: one per creature file (cf. mobjinfo_t)
 typedef struct {
     char name[32];
-    char prefix[8]; // art files S04<prefix>*.GRA, voice S04<prefix>SD.GRA
-    int codeindex; // character number in PRAGE.EXE (-script mode), -1 none
-    int aiindex; // -1 inherits codeindex (or Sauron for photos); otherwise 0..6
-    int portrait, label; // S04SELMO.GRA frames: 5-frame portrait, name plate
+    char prefix[8]; // original character identifier or custom photo prefix
+    int codeindex; // arcade character index; -1 for custom fighters
+    int portrait, label; // virtual selection bank slots: portrait and label
     gra_t *photoport; // photographed close-up, separate from the animation scale
     int palette, altpalette; // sub-palettes of the base art file
     bool facesleft; // which way the art faces
@@ -197,13 +202,13 @@ extern const char *const stdanimnames[NUMSTDANIMS];
 
 // --- p_script.c: Primal Rage's own animation scripts and move tables -------
 //
-// Run straight out of PRAGE.EXE (see w_exe.c).
+// Run directly from the big-endian arcade CPU ROM (see w_exe.c).
 // An animation is a stream of 16-bit words. A word below 0x8000 shows a
 // "frame id" (bit 15 of a frame word mirrors it); anything else is an
 // opcode: number = (w >> 8) & 0x1F, operand mode = w & 0x6000, selector =
 // low byte (opcode 0x1F: the real opcode is the low byte and the selector is
-// the next word). Frame ids index a global table of (GRA file id << 23 |
-// frame record offset). Each script runs with a frame timer: every tic the
+// the next word). Frame ids address RLE motion objects. Each script runs
+// with a frame timer: every tic the
 // timer drops by one; at zero the script advances to its next frame and the
 // timer gains that frame's duration.
 //
@@ -215,9 +220,9 @@ extern const char *const stdanimnames[NUMSTDANIMS];
 #define PS_NUMVARS 6
 #define PS_EPSILON 1e-3f // frame timers are floats; fractional durations must not drift a tic
 
-// PC pixels per arcade unit: the PC art is the arcade art scaled down.
-#define ARCADE_XSCALE 0.81f
-#define ARCADE_YSCALE 0.708f
+// Native arcade units; presentation applies the sole 2x enlargement.
+#define ARCADE_XSCALE 1.f
+#define ARCADE_YSCALE 1.f
 
 // the 62 core rows, named from what they show (the game names none of them)
 enum {
@@ -245,6 +250,7 @@ enum {
 // A script in progress (the animation part of the game's object struct).
 typedef struct {
     uint32_t ip;
+    uint32_t cosmetic_random; // scenery has its own stream; never changes combat RNG
     float timer, duration;
     uint32_t timing; // per-frame tick table (indexed by v52), 0 = off
     uint32_t table; // MOVE_X/MOVE_Y data table
@@ -267,7 +273,7 @@ typedef struct {
 
 typedef struct {
     int step, ticks; // starts when `step` frames have played, lasts `ticks`
-    int x, y, w, h; // in 3-pixel units, anchor-relative
+    int x, y, w, h; // in 4-pixel arcade units, combat-anchor-relative
 } psbox_t;
 
 typedef struct {
@@ -276,7 +282,7 @@ typedef struct {
     int damage;
     int strength; // 1 light .. 3 heavy
     int stun; // A[1]: hit reactions stretch to this many tics
-    int hitclass; // raw C[2]
+    int hitclass; // C[3] low three bits; C[2] contains separate flags
     int numboxes;
     psbox_t boxes[5];
 } psmove_t;
@@ -289,25 +295,14 @@ bool PS_Move(int character, int id, psmove_t *out);
 bool PS_FrameInfo(int frameid, gra_t **sprite, int *frame, int *ax, int *ay);
 
 void PS_Start(psanim_t *a, uint32_t script, float duration);
+void PS_StartScenery(psanim_t *a, uint32_t script, float duration, uint32_t seed);
 // Advance one tic. Returns true when a new frame came up (a->step grew).
 bool PS_Tick(psanim_t *a);
 
 // --- r_main.c, r_stage.c: arenas and the fight scene (cf. r_local.h) --------
-#define HORIZON_Y (VIEWHEIGHT - 72)
-#define MAXPROPS 3
-
 typedef struct stage_s {
-    const char *file;
     const char *name;
-    // built by R_PrepareStage
-    bool prepared;
-    patch_t *sky;
-    const palette_t *skypal;
-    int numprops;
-    patch_t *props[MAXPROPS];
-    const palette_t *proppal[MAXPROPS];
-    float propx[MAXPROPS];
-    pixel_t floortop, floorbottom, floorline;
+    bool prepared; // immutable ROM scenery expanded on first use
 } stage_t;
 
 extern stage_t stages[];
@@ -316,35 +311,8 @@ extern bool r_showboxes;
 
 void R_PrepareStage(stage_t *stage);
 void R_DrawStage(const stage_t *stage, int camx);
+void R_DrawStageForeground(const stage_t *stage, int camx);
 void R_RenderFight(void);
-
-// --- p_enemy.c: original PC AI ------------------------------------------
-// The original's 64-byte decision state, including data addresses (never
-// host pointers). Keeping its layout permits byte-for-byte x86 oracle checks.
-typedef struct {
-    uint32_t decisions, active, column, ticks;
-    int32_t previous;
-    uint32_t response, matrix, macro, weights;
-    int32_t oldopponent, opponent;
-    byte context, matrixid, macroid, profile, step, steptics, reserved[2];
-    uint32_t response_name, matrix_name, macro_name;
-} prai_t;
-
-// Observations consumed by 0x46EE8, named by their original player offsets.
-// special_idle is the native predicate (thinker==0x231FC && duration==0).
-typedef struct {
-    byte motion, action, stance, move, special, started;
-    bool forward, special_idle, incoming;
-} prai_view_t;
-
-bool PA_Init(void); // validate the installed executable; no guessed fallback
-void PA_Observe(prai_t *a, const prai_view_t *opp);
-void PA_Response(prai_t *a, int character, int opponent, const prai_view_t *opp);
-void PA_Matrix(prai_t *a, int character, int distance64);
-void PA_Macro(prai_t *a, int character, int difficulty, int roll);
-uint16_t PA_Input(uint32_t pattern, bool faceleft);
-uint32_t PA_Tick(prai_t *a, int character, int opponent, const prai_view_t *self,
-                 const prai_view_t *opp, int distance64, int difficulty, int roll);
 
 // --- p_*.c: play simulation: fighters and the level (cf. p_local.h) ---------
 // fighter_t (cf. mobj_t + player_t)
@@ -360,6 +328,9 @@ typedef struct fighter_s {
     int health;
     float shownhealth; // HUD drains towards health
     int stun; // tics of hit/block stun left
+    int brain, braindelay; // accumulated brain damage, independent of hitstun
+    bool dizzypending, dizzy;
+    int mashdir; // last non-neutral left/right direction during dizziness
     int flash;
     bool attackhit; // current attack already connected
     bool airattackused;
@@ -369,7 +340,7 @@ typedef struct fighter_s {
     ticcmd_t cmd;
     int oldbuttons;
     // CPU brain (p_enemy.c)
-    prai_t ai;
+    int aiwait, aihold, aiplan; // reaction cooldown, committed macro duration/input
     // the move in progress
     int move; // slot in def->moves, -1 none
     const attackinfo_t *attack; // NULL when not attacking
@@ -393,9 +364,9 @@ typedef struct fighter_s {
 typedef enum { PH_INTRO, PH_FIGHT, PH_KO, PH_OVER } phase_t;
 
 typedef struct {
-    float x, z, vx, vz;
-    int life;
-    pixel_t color;
+    float x, z;
+    bool blocked;
+    psanim_t animation;
 } particle_t;
 
 #define MAXPARTICLES 256
@@ -422,7 +393,7 @@ void P_SetupRound(fighterdef_t *defs[2], const int palettes[2], stage_t *stage, 
 void P_Ticker(void);
 
 // p_mobj.c
-extern bool p_scripted; // -script: run PRAGE.EXE's bytecode instead of creature files
+extern bool p_scripted; // original fighters run ROM scripts; photos use authored states
 void P_SpawnFighter(fighter_t *f, fighterdef_t *def, int player, float x, int palette);
 bool P_SetAnim(fighter_t *f, animnum_t anim);
 bool P_StartMove(fighter_t *f, int slot, animnum_t next);
@@ -433,7 +404,7 @@ void P_FighterThinker(fighter_t *f);
 void P_AnimTick(fighter_t *f); // advance the animation only
 
 // p_check.c
-int P_CheckAnims(void); // -checkanims: creature files vs PRAGE.EXE's scripts
+int P_CheckAnims(void); // -checkanims: all supported arcade animations and move slots
 void P_Voice(fighter_t *f, int which, float vol);
 void A_Swish(fighter_t *f, const state_t *st);
 void A_Roar(fighter_t *f, const state_t *st);
@@ -442,6 +413,8 @@ void A_Thud(fighter_t *f, const state_t *st);
 // p_user.c
 void P_PlayerThink(fighter_t *f, const fighter_t *opp);
 int P_ForwardInput(const fighter_t *f, int buttons);
+int P_InputMove(const fighter_t *f, const fighter_t *opp, int buttons);
+bool P_MoveIsAir(int slot);
 
 // p_map.c
 typedef struct {
@@ -569,6 +542,7 @@ void D_Display(void);
 
 // --- sel_main.c: character select screen (cf. wi_stuff.h) ------------------
 void SEL_Start(void);
+void SEL_Reset(void);
 bool SEL_Responder(const event_t *ev);
 void SEL_Ticker(void);
 void SEL_Drawer(void);

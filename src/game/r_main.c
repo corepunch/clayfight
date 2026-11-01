@@ -9,6 +9,16 @@ bool r_showboxes;
 static void R_DrawShadow(const fighter_t *f, int camx)
 {
     int cx = (int)lroundf(f->x) - camx;
+    if(f->def->codeindex>=0){
+        patch_t *p=W_ArcadeShadow(f->def->codeindex,f->state->frame);
+        int flags=((f->def->facesleft?f->facing>0:f->facing<0)!=f->state->hflip)?V_FLIP:0;
+        uint32_t desc=X_U32(0x6d5e0+f->def->codeindex*4);
+        float scale=X_U16(desc+12)/4096.f;
+        V_DrawPatchScaled(cx,FLOOR_Y,p,W_ArcadeStagePalette((int)(level.stage-stages),0x100),flags,scale,scale);
+        return;
+    }
+    // Photo fighters have no authored arcade shadow bank; their existing
+    // ground-contact ellipse follows the photographed silhouette's width.
     float shrink = MAX(0.4f, 1 - f->z / 160);
     int rx = (int)lroundf(f->def->width * 0.9f * shrink);
     int ry = MAX(2, (int)lroundf(5 * shrink));
@@ -58,9 +68,12 @@ void R_RenderFight(void)
 
     for (int i = 0; i < level.numparticles; i++) {
         const particle_t *p = &level.particles[i];
-        int s = p->life > 8 ? 2 : 1;
-        V_FillRect((int)lroundf(p->x) - camx, FLOOR_Y - (int)lroundf(p->z), s, s, p->color);
+        V_DrawPatch((int)lroundf(p->x)-camx,FLOOR_Y-(int)lroundf(p->z),
+                    W_Frame(W_LoadGra("arcade"),p->animation.frameid),
+                    W_ArcadeImpactPalette(p->blocked),0);
     }
+
+    R_DrawStageForeground(level.stage, camx);
 
     if (r_showboxes) {
         for (int i = 0; i < 2; i++) {

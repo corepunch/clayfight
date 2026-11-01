@@ -45,7 +45,7 @@ class ConceptAssets(unittest.TestCase):
             size, baseline = None, None
             for frame in atlas["frames"]:
                 with self.subTest(fighter=atlas["key"], frame=frame["index"]):
-                    path = ROOT / "creatures" / atlas["key"] / "photos" / f"{frame['index']:02d}.png"
+                    path = ROOT / "data/creatures" / atlas["key"] / "photos" / f"{frame['index']:02d}.png"
                     with Image.open(path) as photo:
                         self.assertEqual(photo.mode, "RGBA")
                         if size is None: size = photo.size

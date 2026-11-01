@@ -1,7 +1,7 @@
 // d_main.c -- startup and the main loop (cf. d_main.c: D_DoomMain, D_DoomLoop, D_Display)
 //
 // Command line (Doom style):
-//   -data <dir>         Primal Rage PC files (default: primalrage)
+//   -data <dir>         Primal Rage 2.3 arcade ROM chips (default: data/primrage)
 //   -fight <p1> <p2>    skip menus straight into a fight, e.g. -fight sauron sauron
 //   -cpu                both fighters CPU-controlled (attract mode)
 //   -stage <n>          arena index for -fight
@@ -11,11 +11,10 @@
 //   -tics <n>
 //   -nosound
 //   -sheet NAME         with -shots: draw every frame of a creature's art (hotspots marked)
-//   -checkanims         compare creature files with PRAGE.EXE's scripts and quit
+//   -checkanims         validate arcade animations, frames and palettes and quit
 //   -boxes              draw hurt (green) and attack (red) boxes
 //   -creatures <dir>    creature files to load, also one folder down (default: creatures)
-//   -script             run PRAGE.EXE's own bytecode instead of the creature files'
-//                       animations (the reference the converter is checked against)
+//   Retail fighters always run arcade bytecode; photos use authored states.
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -168,25 +167,15 @@ int D_InitGame(int argc, char **argv)
 
     r_showboxes = M_CheckParm("-boxes") != 0;
     I_InitGraphics(headless);
-    W_Init(M_ParmValue("-data", "primalrage"));
+    W_Init(M_ParmValue("-data", "data/primrage"));
+    if (!PS_Init()) I_Error("Arcade script table is unavailable");
+    p_scripted = true;
     V_Init();
     M_LoadOptions();
-    P_LoadRoster(M_ParmValue("-creatures", "creatures"));
+    P_LoadRoster(M_ParmValue("-creatures", "data/creatures"));
+    SEL_Reset();
     if (M_CheckParm("-checkanims")) {
-        char exepath[600];
-        snprintf(exepath, sizeof exepath, "%s/PRAGE.EXE", M_ParmValue("-data", "primalrage"));
-        if (!X_Init(exepath) || !PS_Init())
-            I_Error("-checkanims needs Primal Rage's PRAGE.EXE in the data directory");
-        int failed = P_CheckAnims();
-        I_Shutdown();
-        return failed ? 1 : 0;
-    }
-    if (M_CheckParm("-script")) {
-        char exepath[600];
-        snprintf(exepath, sizeof exepath, "%s/PRAGE.EXE", M_ParmValue("-data", "primalrage"));
-        if (!X_Init(exepath) || !PS_Init())
-            I_Error("-script needs Primal Rage's PRAGE.EXE in the data directory");
-        p_scripted = true;
+        int failed = P_CheckAnims(); I_Shutdown(); return failed ? 1 : 0;
     }
     if (!M_CheckParm("-nosound") && !headless)
         S_Init();
@@ -213,8 +202,8 @@ int D_InitGame(int argc, char **argv)
     return -1; // initialized; native hosts drive ticks and display themselves
 }
 
-#ifndef CLAY_IOS
-int main(int argc, char **argv)
+#if !defined(CLAY_IOS) || defined(CLAY_HOST)
+int clay_cli_main(int argc, char **argv)
 {
     int result = D_InitGame(argc, argv);
     if (result >= 0) return result;

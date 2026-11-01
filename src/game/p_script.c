@@ -1,22 +1,20 @@
 // p_script.c -- Primal Rage's animation script interpreter and move tables
 //
-// Table addresses are linear addresses in PRAGE.EXE (PC version 1.0, 1995)
-// after loading its LE objects (w_exe.c). Interpreter semantics follow the
-// game's own interpreter at code address 0x2B780.
+// Addresses refer to the interleaved big-endian arcade 2.3 program chips.
+// Retail fighters run their ROM bytecode directly; photos use authored states.
 
 #include <stdio.h>
 
 #include "game/game.h"
 
-#define FRAMETAB 0xF8A74 // u32[NUMFRAMEIDS]: gra file id << 23 | frame record offset
-#define NUMFRAMEIDS 18232
-#define ANCHORS 0x124A0C // u8[NUMFRAMEIDS][2]: anchor x, y
-#define SCRIPTTAB 0x118298 // u32[62 rows][10 character slots]
-#define MOVES_A 0x12D78C // 11 bytes per move: damage, ..., strength at [4]
-#define MOVES_B 0xF3488 // 20 bytes per move: handler, script row pointer, sounds, ?, score
-#define MOVES_C 0xF6688 // 6 bytes per move: [2] = hit class
-#define HITBOXES 0xE68A4 // [char][64 moves] 5 x (step, box index, active tics)
-#define BOXSHAPES 0x11BC84 // u8[char][256][4]: x, y, w, h
+#define NUMFRAMEIDS 12000
+#define SCRIPTTAB 0x6d964 // 65 rows x 10 slots, arcade 2.3 Dec 1994
+#define MOVES_A 0xfbba0
+#define MOVES_B 0x6fca4
+#define MOVES_C 0x72ea4
+#define HITBOXES 0x7d328
+#define BOXSHAPES 0x49f7c
+#define FRAMEANCHORS 0xfd148 // collision anchors, distinct from RLE drawing pivots
 
 #define MAXOPS 512 // instructions per advance before we call it a runaway
 
@@ -39,17 +37,12 @@ bool PS_FrameInfo(int frameid, gra_t **sprite, int *frame, int *ax, int *ay)
     frameid &= 0x7fff;
     if (frameid >= NUMFRAMEIDS)
         return false;
-    uint32_t v = X_U32(FRAMETAB + 4 * frameid);
-    gra_t *g = W_GraById(v >> 23);
-    if (!g)
-        return false;
-    int off = (int)(v & 0x7fffff) - g->framechunk - 8;
-    if (off < 0 || off % 12 || off / 12 >= g->numframes)
-        return false;
-    *sprite = g;
-    *frame = off / 12;
-    *ax = X_U8(ANCHORS + 2 * frameid);
-    *ay = X_U8(ANCHORS + 2 * frameid + 1);
+    gra_t *g = W_LoadGra("arcade");
+    patch_t *p = W_Frame(g, frameid);
+    if (!p) return false;
+    *sprite = g; *frame = frameid;
+    *ax = X_U8(FRAMEANCHORS + frameid * 2);
+    *ay = X_U8(FRAMEANCHORS + frameid * 2 + 1);
     return true;
 }
 
@@ -59,28 +52,29 @@ bool PS_Init(void)
     if (!X_Loaded())
         return false;
     // sanity checks against the build these addresses came from: Sauron's
-    // stance starts on frame id 3842 = S04REX.GRA #37
+    // stance starts on arcade motion object 3818.
     gra_t *g;
     int frame, ax, ay;
     uint32_t stance = X_U32(SCRIPTTAB);
-    if (!X_Valid(stance, 2) || X_U16(stance) != 3842 || !PS_FrameInfo(3842, &g, &frame, &ax, &ay)
-        || frame != 37) {
-        I_Log("PS_Init: PRAGE.EXE tables don't match the expected build; using built-in tables");
+    if (!X_Valid(stance, 2) || X_U16(stance) != 3818 || !PS_FrameInfo(3818, &g, &frame, &ax, &ay)
+        || frame != 3818) {
+        I_Log("PS_Init: Arcade ROM tables do not match the supported revision");
         return false;
     }
     active = true;
-    I_Log("PS_Init: running Primal Rage's own animation scripts");
+    I_Log("PS_Init: running arcade 2.3 animation scripts");
     return true;
 }
 
 uint32_t PS_RowScript(int character, int row)
 {
-    return X_U32(SCRIPTTAB + 4 * (row * 10 + character));
+    int arcade_row = row + (row >= 12) + (row >= 54);
+    return X_U32(SCRIPTTAB + 4 * (arcade_row * 10 + character));
 }
 
 float PS_RowDuration(int row)
 {
-    return row >= 0 && row < PS_NUMROWS ? rowduration[row] : 2;
+    return row == 0 || row == 1 ? 3 : row >= 0 && row < PS_NUMROWS ? rowduration[row] : 2;
 }
 
 bool PS_Move(int character, int id, psmove_t *m)
@@ -88,14 +82,15 @@ bool PS_Move(int character, int id, psmove_t *m)
     int k = character * 64 + id;
     *m = (psmove_t){0};
     uint32_t rowptr = X_U32(MOVES_B + 20 * k + 4);
-    if (rowptr < SCRIPTTAB || rowptr >= SCRIPTTAB + PS_NUMROWS * 40)
+    if (rowptr < SCRIPTTAB || rowptr >= SCRIPTTAB + 65 * 40)
         return false; // special moves start from code, not from the row table
     m->valid = true;
-    m->row = (rowptr - SCRIPTTAB) / 40;
+    int r = (rowptr - SCRIPTTAB) / 40;
+    m->row = r - (r >= 13) - (r >= 56);
     m->damage = X_U8(MOVES_A + 11 * k);
     m->strength = X_U8(MOVES_A + 11 * k + 4);
     m->stun = X_U8(MOVES_A + 11 * k + 1);
-    m->hitclass = X_U8(MOVES_C + 6 * k + 2);
+    m->hitclass = X_U8(MOVES_C + 6 * k + 3) & 7;
     uint32_t t = HITBOXES + 0x3c0 * character + 15 * id;
     for (int j = 0; j < 5; j++) {
         int step = X_S8(t + 3 * j);
@@ -136,13 +131,20 @@ static void SetVar(psanim_t *a, int sel, int value)
 
 // --- native routines called from scripts (cf. Doom's action functions) ----
 
-// 0x38294: the "breathing" idle. Every few tics pick a random direction and
+static int AnimRandom(psanim_t *a)
+{
+    if(!a->cosmetic_random)return P_Random();
+    uint32_t r=a->cosmetic_random;r^=r<<13;r^=r>>17;r^=r<<5;
+    a->cosmetic_random=r;return r&255;
+}
+
+// 0x1c4c4: the "breathing" idle. Every few tics pick a random direction and
 // drift the frame index v52 through the cycle, wrapping at both ends.
 static void N_Breathe(psanim_t *a)
 {
     int *v52 = &a->vars[0], *v58 = &a->vars[5];
     if (--a->breathtimer < 0) {
-        *v58 = P_Random() & 1 ? 1 : -1;
+        *v58 = AnimRandom(a) & 1 ? 1 : -1;
         a->breathtimer = a->cyclelen / 3 * 3;
     }
     *v52 += *v58;
@@ -152,14 +154,14 @@ static void N_Breathe(psanim_t *a)
         *v52 = a->cyclelen - 1;
 }
 
-// 0x3a214 (arg n): hit reactions spread the attacker's stun over n frames.
+// 0x150d4 (arg n): hit reactions spread the attacker's stun over n frames.
 static void N_StunDuration(psanim_t *a, int arg)
 {
     if (arg > 0 && a->linkstun > 0)
         a->duration = (float)a->linkstun / arg;
 }
 
-// 0x36658: frame timer and duration set to 3 (Vertigo's backward hop)
+// 0x1a8ac: frame timer and duration set to 3 (Vertigo's backward hop)
 static void N_Duration3(psanim_t *a, int arg)
 {
     (void)arg;
@@ -172,29 +174,35 @@ static void N_Breathe1(psanim_t *a, int arg)
     N_Breathe(a);
 }
 
+static void N_Crouch(psanim_t *a, int arg)
+{
+    (void)arg; a->vars[0]=0; a->duration=3; a->cyclelen=20;
+}
+
 static const struct {
     uint32_t addr;
     bool ends; // control returns to game code: the animation is over
     void (*fn)(psanim_t *a, int arg);
 } natives[] = {
-    {0x38294, false, N_Breathe1},
-    {0x3a214, false, N_StunDuration},
-    {0x36658, false, N_Duration3},
-    {0x40824, false, NULL}, // clears a flag on the linked object
-    {0x385f4, false, NULL}, // victory pose finished (global flag)
-    {0x3cafc, true, NULL}, // clear a per-player counter, then back to neutral
-    {0x416dc, false, NULL}, // Diablo's victory flames (spawns an object)
-    {0x154d0, false, NULL}, // per-player bookkeeping
-    {0x3a1f0, false, NULL}, // set a per-player timer word
-    {0x36c5c, false, NULL}, // crouch bookkeeping
-    {0x370c0, true, NULL}, // back to neutral
-    {0x3618c, true, NULL}, // end of walk step
-    {0x35058, true, NULL}, // knocked down: game code takes over
-    {0x383a0, true, NULL}, // end of victory pose
+    {0x1c4c4, false, N_Breathe1},
+    {0x150d4, false, N_StunDuration},
+    {0x1a8ac, false, N_Duration3},
+    {0x2d03c, false, NULL}, // clears a flag on the linked object
+    {0x1c5f2, false, NULL}, // victory pose finished (global flag)
+    {0x1b382, true, NULL}, // clear a per-player counter, then back to neutral
+    {0x1c8b6, false, NULL}, // Diablo's victory flames (spawns an object)
+    {0x42fee, false, NULL}, // per-player bookkeeping
+    {0x1506c, false, NULL}, // per-player action timer, maintained by our simulation
+    {0x3dae8, true, NULL}, // clear player flag and return to neutral
+    {0x1ae76, false, N_Crouch}, // crouch bookkeeping
+    {0x1a45c, true, NULL}, // end of walk step
+    {0x1960c, true, NULL}, // knocked down: game code takes over
 };
 
 static bool N_Call(psanim_t *a, uint32_t addr, int arg)
 {
+    // Native scenery chance routine: select the eruption branch one time in n.
+    if(a->cosmetic_random && addr==0x23336){a->vars[1]=AnimRandom(a)%MAX(1,arg)==0;return false;}
     static uint32_t reported[32];
     static int numreported;
     for (size_t i = 0; i < sizeof natives / sizeof natives[0]; i++) {
@@ -217,6 +225,7 @@ static bool N_Call(psanim_t *a, uint32_t addr, int arg)
 // that stay in the starting frame's file.
 static int CycleLength(uint32_t base, bool table)
 {
+    if (!table) return 30;
     gra_t *g0 = NULL, *g;
     int f, ax, ay, n = 0;
     for (; n < 64; n++) {
@@ -327,7 +336,7 @@ static runresult_t Run(psanim_t *a)
         }
         case 0x07: // DELAY: hold the current frame longer
         case 0x08: // RANDOM_DELAY
-            a->timer += opc == 0x07 ? value : P_Random() % (MAX(value, 0) + 1);
+            a->timer += opc == 0x07 ? value : AnimRandom(a) % (MAX(value, 0) + 1);
             if (a->timer > PS_EPSILON) {
                 a->ip = next;
                 return RUN_PAUSED;
@@ -416,11 +425,16 @@ static runresult_t Run(psanim_t *a)
     return RUN_STOPPED;
 }
 
-void PS_Start(psanim_t *a, uint32_t script, float duration)
+void PS_StartScenery(psanim_t *a, uint32_t script, float duration, uint32_t seed)
 {
-    *a = (psanim_t){.ip = script, .duration = duration, .step = -1, .linkstun = a->linkstun};
+    *a = (psanim_t){.ip = script, .duration = duration, .step = -1, .linkstun = a->linkstun, .cosmetic_random=seed};
     if (Run(a) != RUN_SHOWN && a->step < 0)
         a->done = true;
+}
+
+void PS_Start(psanim_t *a, uint32_t script, float duration)
+{
+    PS_StartScenery(a,script,duration,0);
 }
 
 bool PS_Tick(psanim_t *a)

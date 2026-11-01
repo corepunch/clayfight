@@ -1,26 +1,45 @@
-// p_user.c -- turn ticcmds into fighter actions (cf. p_user.c)
-
+// p_user.c -- turn human and CPU ticcmds into the same fighter actions.
 #include <math.h>
-
 #include "game/game.h"
 
-// Button order inside each move group: HQ HF LQ LF. Fierce wins over quick.
-static int P_ButtonIndex(int pressed)
+static int P_ButtonIndex(int buttons)
 {
-    return pressed & BT_HF ? 1 : pressed & BT_LF ? 3 : pressed & BT_HQ ? 0 : 2;
+    return buttons & BT_HF ? 1 : buttons & BT_LF ? 3 : buttons & BT_HQ ? 0 : 2;
 }
 
-// Try the move for this group and button, falling back to the plain
-// standing (or jumping) version when a creature doesn't have it.
-static bool P_TryMove(fighter_t *f, int group, int button, animnum_t next)
+bool P_MoveIsAir(int slot)
 {
-    if (P_StartMove(f, group * 4 + button, next))
+    return (slot >= MG_JUMP * 4 && slot < MG_JUMP * 4 + 4) || slot >= MP_JUMP;
+}
+
+// ROM rows 19/20, 37/38, 25/26, 31/32 are the four power pairs.
+int P_InputMove(const fighter_t *f, const fighter_t *opp, int buttons)
+{
+    bool air = P_IsAirborne(f);
+    bool crouch = !air && (buttons & BT_DOWN);
+    bool close = fabsf(opp->x - f->x) < f->def->reach + opp->def->reach + 8;
+    int high = BT_HQ | BT_HF, low = BT_LQ | BT_LF;
+    if ((buttons & high) == high || (buttons & low) == low) {
+        int base = air ? MP_JUMP : crouch ? MP_CROUCH : close ? MP_CLOSE : MP_STAND;
+        return base + ((buttons & high) == high ? 0 : 1);
+    }
+    return (air ? MG_JUMP : crouch ? MG_CROUCH : close ? MG_CLOSE : MG_STAND) * 4 + P_ButtonIndex(buttons);
+}
+
+static bool P_TryMove(fighter_t *f, const fighter_t *opp, int buttons, animnum_t next)
+{
+    int slot = P_InputMove(f, opp, buttons);
+    if (P_StartMove(f, slot, next))
         return true;
-    int fallback = group == MG_CLOSE || group == MG_POWER ? MG_STAND : group == MG_AIR ? MG_JUMP : -1;
-    return fallback >= 0 && P_StartMove(f, fallback * 4 + button, next);
+    // Photo creatures need only standing attacks; prefer the authored fierce
+    // variant if they have no power pair, then the standing variant.
+    int button = P_ButtonIndex(buttons);
+    int group = P_IsAirborne(f) ? MG_JUMP : (buttons & BT_DOWN) ? MG_CROUCH : MG_STAND;
+    if (slot >= MP_STAND && P_StartMove(f, group * 4 + button, next))
+        return true;
+    return !P_IsAirborne(f) && P_StartMove(f, MG_STAND * 4 + button, next);
 }
 
-// +1 = towards where the fighter faces, -1 = away.
 int P_ForwardInput(const fighter_t *f, int buttons)
 {
     int right = (buttons & BT_RIGHT) != 0, left = (buttons & BT_LEFT) != 0;
@@ -30,28 +49,50 @@ int P_ForwardInput(const fighter_t *f, int buttons)
 void P_PlayerThink(fighter_t *f, const fighter_t *opp)
 {
     int buttons = f->cmd.buttons;
-    int pressed = f->cmd.explicit_edges ? f->cmd.pressed : buttons & ~f->oldbuttons;
+    int pressed = buttons & ~f->oldbuttons;
     f->oldbuttons = buttons;
+    f->blocking = false;
     if (f->dead)
         return;
 
-    int fwd = P_ForwardInput(f, buttons);
+    if (f->dizzypending && f->state->kind == K_FREE && !P_IsAirborne(f)) {
+        f->dizzypending = false;
+        f->dizzy = true;
+        f->mashdir = 0;
+        f->momx = 0;
+        if (!P_SetAnim(f, ANIM_DIZZY))
+            P_SetAnim(f, ANIM_HIT);
+    }
+    if (f->dizzy) {
+        int dir = !!(buttons & BT_RIGHT) - !!(buttons & BT_LEFT);
+        if (dir && f->mashdir && dir != f->mashdir)
+            f->brain = MAX(0, f->brain - 8);
+        if (dir)
+            f->mashdir = dir;
+        if (f->brain > 0)
+            return;
+        f->dizzy = false;
+        P_SetAnim(f, ANIM_STAND);
+    }
+
     animkind_t kind = f->state->kind;
-    // holding away from the opponent means "guard", like most fighters
-    f->blocking = fwd < 0 && !P_IsAirborne(f);
+    if (kind == K_FREE && !P_IsAirborne(f)) {
+        int want = opp->x >= f->x ? 1 : -1;
+        if (fabsf(opp->x - f->x) > 4)
+            f->facing = want;
+    }
+    // Guard follows the opponent's current side, including cross-ups. Attack
+    // buttons and up cancel guard; airborne fighters cannot block.
+    int away = opp->x >= f->x ? BT_LEFT : BT_RIGHT;
+    int toward = away == BT_LEFT ? BT_RIGHT : BT_LEFT;
+    f->blocking = (buttons & away) && !(buttons & (toward | BT_UP | BT_ATTACKS)) && !P_IsAirborne(f);
+    int fwd = P_ForwardInput(f, buttons);
 
     if (kind == K_FREE && !P_IsAirborne(f)) {
-        // always face the opponent while in control on the ground
-        int want = opp->x >= f->x ? 1 : -1;
-        if (want != f->facing && fabsf(opp->x - f->x) > 4)
-            f->facing = want;
-
         bool crouching = buttons & BT_DOWN;
         if (pressed & BT_ATTACKS) {
-            bool close = fabsf(opp->x - f->x) < f->def->reach + opp->def->reach + 8;
-            int group = crouching ? MG_CROUCH : close ? MG_CLOSE : MG_STAND;
             f->momx = 0;
-            if (P_TryMove(f, group, P_ButtonIndex(pressed), crouching ? ANIM_CROUCH : ANIM_STAND))
+            if (P_TryMove(f, opp, buttons, crouching ? ANIM_CROUCH : ANIM_STAND))
                 return;
         }
         if (buttons & BT_UP) {
@@ -73,14 +114,11 @@ void P_PlayerThink(fighter_t *f, const fighter_t *opp)
         return;
     }
 
-    // one attack per jump: straight up uses the jump group, across the air group
     if (kind == K_AIR && P_InAnim(f, ANIM_JUMP) && !f->airattackused && (pressed & BT_ATTACKS)) {
         f->airattackused = true;
-        P_TryMove(f, fabsf(f->momx) > 0.5f ? MG_AIR : MG_JUMP, P_ButtonIndex(pressed), ANIM_JUMP);
+        P_TryMove(f, opp, buttons, ANIM_JUMP);
         return;
     }
-
-    // leave the guard pose once blockstun runs out
     if (kind == K_HIT && f->stun == 0 && (P_InAnim(f, ANIM_BLOCK) || P_InAnim(f, ANIM_CROUCHBLOCK)))
         P_SetAnim(f, P_InAnim(f, ANIM_CROUCHBLOCK) ? ANIM_CROUCH : ANIM_STAND);
 }

@@ -1,103 +1,63 @@
-# Clayfight -- native iPhone/iPad app and desktop development harness
-
+# Standalone Clayfight: native C simulation, SDL desktop, native UIKit capture.
 CC ?= cc
+CXX ?= c++
+CFLAGS ?= -O2 -g
+CPPFLAGS += -Isrc -Ithird_party -D_DEFAULT_SOURCE
+WARN := -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers
 SDL_CFLAGS = $(shell sdl2-config --cflags)
 SDL_LIBS = $(shell sdl2-config --libs)
-CFLAGS ?= -O2 -g
-CFLAGS += -std=c99 -Wall -Wextra -Wno-unused-parameter -D_DEFAULT_SOURCE -Isrc $(SDL_CFLAGS)
-LDLIBS += $(SDL_LIBS) -lm
-
-# one folder per layer, one header each: platform <- engine <- game
-SRCS := $(wildcard src/*/*.c)
-OBJS := $(SRCS:src/%.c=build/%.o)
-HDRS := $(wildcard src/*/*.h)
-
-all: clayfight creatures
-
-clayfight: $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDLIBS)
-
-# Primal Rage's fighters, converted from the game's own PRAGE.EXE. They're
-# derived from your copy of the game, so they stay out of version control.
-creatures: creatures/primalrage/sauron.txt
-
-creatures/primalrage/sauron.txt: primalrage/PRAGE.EXE tools/pr2creature.py tools/extract_scripts.py
-	python3 -I tools/pr2creature.py primalrage creatures/primalrage
-
-check: all checkvideo checkphoto checkflow checkcapture checkretail checkai
-	./clayfight -checkanims
-
-checkvideo: build/checkvideo
-	./build/checkvideo
-
-build/checkvideo: tests/video.c src/engine/v_video.c $(HDRS)
-	@mkdir -p build
-	$(CC) $(CFLAGS) -o $@ tests/video.c src/engine/v_video.c -lm
-
-checkphoto: build/checkphoto
-	./build/checkphoto
-
-build/checkphoto: tests/photo.c src/engine/w_photo.c $(HDRS)
-	@mkdir -p build
-	$(CC) $(CFLAGS) -o $@ tests/photo.c src/engine/w_photo.c -lm
-
-.PHONY: checkphoto
-
+ALL_CFLAGS = $(CFLAGS) -std=c11 $(WARN) $(CPPFLAGS) $(SDL_CFLAGS)
+ALL_CXXFLAGS = $(CFLAGS) -std=c++20 $(WARN) $(CPPFLAGS) $(SDL_CFLAGS)
+C_SRC := $(wildcard src/game/*.c src/platform/*.c src/support/*.c)
+CPP_SRC := $(wildcard src/sound/*.cpp)
+OBJ := $(C_SRC:src/%.c=build/%.o) $(CPP_SRC:src/%.cpp=build/%.o)
+HDRS := $(wildcard src/*/*.h src/sound/*.hpp src/sound/*.ipp)
+CXX_LIB := $(if $(filter Darwin,$(shell uname -s)),-lc++,-lstdc++)
+LIBS := $(SDL_LIBS) -lm $(CXX_LIB)
+.PHONY: all clayfight run clean test check test-retail test-full resources lint ios-simulator ios-device
+all clayfight: build/clayfight
+build/clayfight: src/main.c $(OBJ)
+	$(CC) $(ALL_CFLAGS) -o $@ $^ $(LIBS)
 build/%.o: src/%.c $(HDRS)
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -c -o $@ $<
-
-clean:
-	rm -rf build clayfight
-
-.PHONY: all clean creatures check checkvideo
-
-checkflow: build/checkflow
-	./build/checkflow
-
-build/checkflow: tests/flow.c $(filter-out build/game/d_main.o,$(OBJS)) $(HDRS)
-	$(CC) $(CFLAGS) -o $@ tests/flow.c $(filter-out build/game/d_main.o,$(OBJS)) $(LDLIBS)
-
-.PHONY: checkflow
-
-checkretail: all build/checkretail
-	./build/checkretail
-
-build/checkretail: tests/retail.c $(filter-out build/game/d_main.o,$(OBJS)) $(HDRS)
-	$(CC) $(CFLAGS) -o $@ tests/retail.c $(filter-out build/game/d_main.o,$(OBJS)) $(LDLIBS)
-
-.PHONY: checkretail
-
-checkcapture: all
-	python3 -B tests/capture.py
-
-.PHONY: checkcapture
-
-checkai: all build/checkai
-	./build/checkai
-
-build/checkai: tests/ai.c $(filter-out build/game/d_main.o,$(OBJS)) $(HDRS)
-	$(CC) $(CFLAGS) -o $@ tests/ai.c $(filter-out build/game/d_main.o,$(OBJS)) $(LDLIBS)
-
-# Original x86 differential checks need only a small Unicorn Python wheel.
-# Set AI_PYTHON to a venv with tests/requirements-ai.txt installed.
-AI_PYTHON ?= python3
-AI_SHARED_FLAGS = $(if $(filter Darwin,$(shell uname -s)),-dynamiclib,-shared -fPIC)
-build/ai-oracle.so: src/game/p_enemy.c src/engine/w_exe.c tests/ai_bridge.c $(HDRS)
+	$(CC) $(ALL_CFLAGS) -c $< -o $@
+build/%.o: src/%.cpp $(HDRS)
+	@mkdir -p $(dir $@)
+	$(CXX) $(ALL_CXXFLAGS) -c $< -o $@
+run: all
+	./build/clayfight $(ARGS)
+build/test-combat: tests/combat.c tests/runner.c tests/test.h $(OBJ)
+	$(CC) $(ALL_CFLAGS) -Itests -o $@ tests/combat.c tests/runner.c $(OBJ) $(LIBS)
+build/test-video: tests/video.c src/game/v_video.c src/support/raster.c $(HDRS)
 	@mkdir -p build
-	$(CC) $(CFLAGS) -Werror -DCLAYFIGHT_AI_ORACLE $(AI_SHARED_FLAGS) -o $@ src/game/p_enemy.c src/engine/w_exe.c tests/ai_bridge.c -lm
-
-checkai-original: build/ai-oracle.so
-	$(AI_PYTHON) -B tests/ai_original.py $(or $(GAME_DATA),primalrage) $<
-
-.PHONY: checkai checkai-original
-
-# Native targets compile the shared C engine with UIKit/AVFoundation, without SDL.
+	$(CC) $(ALL_CFLAGS) -o $@ tests/video.c src/game/v_video.c src/support/raster.c -lm
+build/test-photo: tests/photo.c src/game/w_photo.c src/support/photo.c src/support/raster.c $(HDRS)
+	@mkdir -p build
+	$(CC) $(ALL_CFLAGS) -o $@ tests/photo.c src/game/w_photo.c src/support/photo.c src/support/raster.c -lm
+build/test-input: tests/input.c src/platform/i_video.c $(HDRS)
+	@mkdir -p build
+	$(CC) $(ALL_CFLAGS) -o $@ tests/input.c src/platform/i_video.c $(SDL_LIBS)
+build/clayfight-arcade: tests/arcade.c tests/flow.c tests/retail.c $(OBJ)
+	$(CC) $(ALL_CFLAGS) -DCLAY_COMBINED -o $@ $^ $(LIBS)
+test check: build/test-combat build/test-video build/test-photo build/test-input
+	./build/test-combat
+	./build/test-video
+	./build/test-photo
+	./build/test-input
+	node --test tests/capture-processing.mjs
+test-retail: all build/test-combat
+	./build/test-combat --retail $(TEST_ARGS)
+	python3 -B tests/capture.py
+test-full: test test-retail build/clayfight-arcade
+	./build/clayfight-arcade -nosound -creatures data/creatures
+resources:
+	python3 tools/import_resources.py
+lint:
+	python3 -B tools/check_project.py
+# Full simulator builds run in cloud CI; avoid large local DerivedData by default.
 ios-simulator:
 	xcodebuild -project ios/Clayfight.xcodeproj -scheme Clayfight -configuration Debug -sdk iphonesimulator -derivedDataPath build/ios CODE_SIGNING_ALLOWED=NO build
-	codesign --force --sign - build/ios/Build/Products/Debug-iphonesimulator/Clayfight.app
-
 ios-device:
 	xcodebuild -project ios/Clayfight.xcodeproj -scheme Clayfight -configuration Release -sdk iphoneos -derivedDataPath build/ios-device CODE_SIGNING_ALLOWED=NO build
-
-.PHONY: ios-simulator ios-device
+clean:
+	rm -rf build

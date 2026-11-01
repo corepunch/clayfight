@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <stdio.h>
 
-#include "engine/engine.h"
+#include "game/resources.h"
 
 // Font loading is unused in these drawing tests.
 gra_t *W_LoadGra(const char *name) { return NULL; }

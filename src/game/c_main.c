@@ -3,10 +3,10 @@
 #include "game/game.h"
 
 campaign_t campaign;
-// PRAGE.EXE character indices: Sauron, Blizzard, Talon, Vertigo, Armadon,
+// Arcade character indices: Sauron, Blizzard, Talon, Vertigo, Armadon,
 // Diablo, Chaos. Home arenas and globe pins are explicitly associated with
 // opponents so a victory conquers the land the map actually announced.
-static const int home[7] = {0, 4, 2, 3, 6, 1, 5};
+static int Home(int character) { return X_U8(0x69a40+character); }
 static const int pins[7][2] = {{65, 69}, {114, 38}, {134, 64}, {144, 110}, {88, 113}, {48, 52}, {97, 83}};
 
 void C_Abandon(void) { campaign.active = false; }
@@ -42,7 +42,7 @@ void C_StartFight(void)
 {
     int id = campaign.finalbattle ? campaign.order[campaign.finalindex] : campaign.order[campaign.conquered];
     bool cpu[2] = {false, true};
-    G_InitNew(campaign.hero, campaign.opponents[id], cpu, &stages[campaign.finalbattle ? 7 : home[id]]);
+    G_InitNew(campaign.hero, campaign.opponents[id], cpu, &stages[campaign.finalbattle ? 7 : Home(id)]);
     C_SetupFinal();
 }
 
@@ -101,9 +101,9 @@ void C_Drawer(void)
 {
     if (gamestate == GS_ENDING) {
         M_Background(campaign.defeated ? "GAME OVER" : "MASTER OF THE NEW URTH");
-        M_DrawCreature(campaign.hero, 110, 44, 100, 100, false);
-        V_DrawTextCentered(FONT_BIG, 160, 150, campaign.hero->name);
-        V_DrawTextCentered(FONT_SMALL, 160, 176, campaign.defeated ? "YOUR CONQUEST ENDS HERE" : "SEVEN LANDS. SEVEN FINAL RIVALS. VICTORY!");
+        M_DrawCreature(campaign.hero, 118, 44, 100, 100, false);
+        V_DrawTextCentered(FONT_BIG, 168, 150, campaign.hero->name);
+        V_DrawTextCentered(FONT_SMALL, 168, 176, campaign.defeated ? "YOUR CONQUEST ENDS HERE" : "SEVEN LANDS. SEVEN FINAL RIVALS. VICTORY!");
         return;
     }
     if (gamestate == GS_CONTINUE) {
@@ -111,29 +111,29 @@ void C_Drawer(void)
         char text[64];
         int left = MAX(0, (campaign.finalbattle ? 15 : 10) - campaign.tics / TICRATE);
         snprintf(text, sizeof text, "%d", left);
-        V_DrawTextCentered(FONT_BIG, 160, 75, text);
+        V_DrawTextCentered(FONT_BIG, 168, 75, text);
         snprintf(text, sizeof text, "GAME CREDITS: %d", campaign.credits);
-        V_DrawTextCentered(FONT_SMALL, 160, 111, text);
-        V_DrawTextCentered(FONT_SMALL, 160, 135, campaign.credits ? "PRESS START TO TRY THIS RIVAL AGAIN" : "NO CREDITS REMAIN");
-        V_DrawTextCentered(FONT_SMALL, 160, 157, "YOUR CONQUERED LANDS ARE KEPT");
+        V_DrawTextCentered(FONT_SMALL, 168, 111, text);
+        V_DrawTextCentered(FONT_SMALL, 168, 135, campaign.credits ? "PRESS START TO TRY THIS RIVAL AGAIN" : "NO CREDITS REMAIN");
+        V_DrawTextCentered(FONT_SMALL, 168, 157, "YOUR CONQUERED LANDS ARE KEPT");
         return;
     }
     V_Clear(0xff07080c);
-    V_DrawTextCentered(FONT_BIG, 160, 13, campaign.finalbattle ? "WORLD DOMINATION" : "CONQUERED LANDS");
+    V_DrawTextCentered(FONT_BIG, 168, 13, campaign.finalbattle ? "WORLD DOMINATION" : "CONQUERED LANDS");
     // Original animated globe and original continent patches, with their
     // shared hotspot retained. Marker positions are rebuilt for this view.
-    int frame = 8 + campaign.tics / 5 % 12;
-    gra_t *g = W_LoadGra("S04GLOBM.GRA");
-    int layers[] = {frame, 23 + campaign.tics / 12 % 4, 37, 44};
+    int frame = 8; // Undistorted Urth; later source frames are its destruction.
+    gra_t *g = W_LoadGra("globe");
+    int layers[] = {frame, 20, 33, 46};
     for (int i = 0; i < 4; i++) {
         patch_t *p = W_Frame(g, layers[i]);
-        V_DrawPatch(104, 108, p, &g->palettes[W_GuessPalette(p, g)], 0);
+        V_DrawPatchScaled(94, 111, p, &g->palettes[W_FramePalette(g,layers[i])], 0, 0.68f, 0.68f);
     }
     int current = campaign.order[campaign.finalbattle ? campaign.finalindex : campaign.conquered];
     for (int i = 0; i < 7; i++) {
         int id = campaign.order[i];
         bool done = i < campaign.conquered;
-        int x = pins[id][0] + 15, y = pins[id][1] + 31;
+        int x = 22 + pins[id][0] * 144 / 180, y = 40 + pins[id][1] * 141 / 150;
         pixel_t color = done ? 0xff75b64b : 0xff926c38;
         if (id == current && (campaign.tics & 16)) color = 0xffffe0a0;
         V_FillRect(x - 2, y - 2, 5, 5, 0xff000000);
@@ -145,13 +145,13 @@ void C_Drawer(void)
     char text[80];
     if (campaign.finalbattle) snprintf(text, sizeof text, "FINAL BATTLE  %d / 7", campaign.finalindex + 1);
     else snprintf(text, sizeof text, "LANDS CONQUERED: %d / 7", campaign.conquered);
-    V_DrawTextCentered(FONT_SMALL, 160, 167, text);
+    V_DrawTextCentered(FONT_SMALL, 168, 198, text);
     snprintf(text, sizeof text, "%s  /  %s", campaign.opponents[current]->name,
-             campaign.finalbattle ? "DINOSAUR GRAVEYARD" : stages[home[current]].name);
-    V_DrawTextCentered(FONT_SMALL, 160, 179, text);
+             campaign.finalbattle ? "DINOSAUR GRAVEYARD" : stages[Home(current)].name);
+    V_DrawTextCentered(FONT_SMALL, 168, 210, text);
 #ifdef CLAY_IOS
-    V_DrawTextCentered(FONT_SMALL, 160, VIEWHEIGHT - 10, "SELECT: FIGHT    BACK: MAIN MENU");
+    V_DrawTextCentered(FONT_SMALL, 168, VIEWHEIGHT - 10, "SELECT: FIGHT    BACK: MAIN MENU");
 #else
-    V_DrawTextCentered(FONT_SMALL, 160, VIEWHEIGHT - 10, "PRESS START TO FIGHT    ESC: MAIN MENU");
+    V_DrawTextCentered(FONT_SMALL, 168, VIEWHEIGHT - 10, "PRESS START TO FIGHT    ESC: MAIN MENU");
 #endif
 }

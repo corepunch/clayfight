@@ -1,50 +1,39 @@
 # Creature files
 
-One plain-text file per fighter. Clayfight loads every `*.txt` in `creatures/`
+One plain-text file per fighter. Clayfight loads every `*.txt` in `data/creatures/`
 and its subfolders at startup (`-creatures <dir>` picks another folder).
 The format is Doom's state tables (frames, tics, what comes next) plus the
 ideas worth keeping from Primal Rage's move scripts; see
 [primal-rage-scripts.md](primal-rage-scripts.md) for where each one comes from.
 
-`tools/pr2creature.py` writes the seven Primal Rage fighters in this format
-from your copy of `PRAGE.EXE` (`make creatures`). `make check` runs
-`clayfight -checkanims`, which plays every animation and move from the files
-and through the game's own script interpreter and compares them tic by tic.
-All 266 match; the two breathing idles are left out because they're random.
+The seven original fighters load directly from the supported arcade ROMs.
+Creature files describe custom photographed fighters; there is no retail
+conversion step. `build/test-combat --retail` checks arcade moves separately.
 
 ## Example
 
 ```
-# lines starting with # are comments (a # inside a word, as in REX#37, is not)
-name SAURON
-art REX left            # art files S04REX*.GRA; the drawings face left
-prage 0                 # character number in PRAGE.EXE (only for -script)
-palette 3 alt 0         # sub-palette of S04REX.GRA; "alt" for a mirror match
-select 130 138          # S04SELMO.GRA portrait (5 frames) and name plate
-speed 1.6 1.2 7.5       # walk, walk back, jump
-width 44                # body width for pushing
+name MYCLAY
+art photo right
+height 92
+speed 1.5 1.2 8
+width 35
 
-anim stand wander       # breathing idle: drifts randomly through its frames
-  REX#37 6
-  REX#34 6
+anim stand hold
+  photos/stand.png 12
 end
 
-anim hit stun 10        # an "Ns" frame lasts N x (attacker's stun / 10) tics
-  REXR1#1 6
-  REXR1#2 6
-  REXR1#3 2s
-  REXR1#4 2s
+anim hit
+  photos/hit.png 18
 end
 
-anim stand_hf
-  REXP1#10 2
-  REXP1#6 2
-  REXP1#7 2 dx 3.2      # root motion: move 3.2 px forward on this frame
+anim punch
+  photos/stand.png 6
+  photos/punch.png 6
+  photos/stand.png 10
 end
 
-move stand.hf stand_hf damage 10 stun 20 strength 2 level high
-  box 3 1  -66 -85 -24 -49    # from tic 3, for 1 tic: x0 y0 x1 y1
-  box 4 3  -125 -79 -86 -34
+move stand.hq punch damage 6 stun 18 strength 1 level high
 end
 ```
 
@@ -53,13 +42,11 @@ end
 | Line | Meaning |
 |---|---|
 | `name NAME` | Shown in the HUD and select screen. |
-| `art PREFIX [left\|right]` | Art lives in `S04<PREFIX>*.GRA`, the voice in `S04<PREFIX>SD.GRA`. Which way the drawings face. |
+| `art photo [left\|right]` | Photographed PNG frames and the direction the figure faces. |
 | `palette N [alt M]` | Sub-palette of the base art file; `alt` for a mirror match. |
 | `select PORTRAIT LABEL` | Select-screen frames in `S04SELMO.GRA`. |
 | `speed WALK BACK JUMP` | Pixels per tic walking forward and back; jump take-off speed. |
 | `width N` | Body width used to keep fighters apart. |
-| `prage N` | Character number in `PRAGE.EXE`, used by `-script` and `-checkanims`. |
-| `ai N` | Original CPU style, `0..6`: Sauron, Blizzard, Talon, Vertigo, Armadon, Diablo, Chaos. Defaults to `prage`, or Sauron for photos; also supplies the matchup identity when fighting custom creatures. |
 
 ## Animations
 
@@ -70,8 +57,8 @@ anim NAME [hold] [loop [from N]] [wander [from N]] [stun N] [next NAME]
 end
 ```
 
-- **FRAME** is `PREFIX#index` (meaning `S04<PREFIX>.GRA`, frame `index`) or
-  `FILE.GRA#index`.
+- **FRAME** is a PNG filename relative to the creature file. Native bank references
+  are reserved for the built-in ROM loader.
 - **TICS** is how long the frame shows, at 60 tics a second; fractions are
   fine. `Ns` means N shares of the attacker's stun (see `stun`).
 - **flip** mirrors the frame. **dx** moves the fighter forward by that many
@@ -91,7 +78,7 @@ How an animation ends:
 
 **`stun N`** makes every `Ns` frame last *N shares* of the stun of the hit
 that caused it, where one share is the attacker's stun ÷ N. Reactions to hard
-hits play slower. Primal Rage does this in its routine `0x3A214`.
+hits play slower. The arcade reaction VM uses the hit's supplied stun.
 
 Standard animation names the engine uses: `stand walkf walkb crouch jump
 land block crouchblock hit crouchhit hithard fall down getup dizzy win`. Only
@@ -106,11 +93,19 @@ move GROUP.BUTTON ANIM damage N stun N strength N level high|low [knockdown] [pu
 end
 ```
 
-- **Buttons:** `hq hf lq lf` (high quick, high fierce, low quick, low fierce).
-- **Groups:** `stand` at range, `close` up close, `crouch`, `jump` straight
-  up, `air` jumping across, and `power`, which Primal Rage has but Clayfight
-  doesn't trigger yet. A missing `close` or `power` move falls back to `stand`,
-  and a missing `air` move to `jump`.
+- **Buttons:** `hq hf lq lf` (high quick, high fierce, low quick, low fierce),
+  plus `hp lp` (the high/low quick+fierce power pairs).
+- **Groups:** `stand` at range, `close` up close, `crouch`, and `jump` for both
+  straight and traveling jumps. For example, `crouch.hp` is slot 20 and
+  `jump.lp` slot 23. Missing ground powers use a posture's fierce move or its
+  standing counterpart. A missing `close`/`crouch` normal uses `stand`;
+  missing air powers can use a fierce `jump` move. With no air move authored,
+  no air attack is performed.
+- **Legacy aliases:** `power.hq/hf/lq/lf` still address slots 16–19 and
+  `air.hq/hf/lq/lf` slots 20–23. Their former grouping was incorrect for the
+  source table; use the explicit posture/power names above. Existing files
+  using these aliases should migrate according to the
+  [normal-move table](primal-rage-combat.md#the-24-normal-move-slots).
 - **Move options:**
   - `damage`: health taken.
   - `stun`: how long the victim's reaction lasts, in tics.
@@ -128,9 +123,8 @@ Hurt boxes always come from the drawing itself.
 
 ## Photographed creatures
 
-A creature can be made from photos instead of `.GRA` art: any frame ending in
-`.png` is a photo, with the path relative to the creature file. See
-`creatures/gloop/gloop.txt`.
+Custom creatures use `.png` photos, with paths relative to their creature
+file. See `data/creatures/gloop/gloop.txt`.
 
 ```
 name GLOOP
@@ -144,7 +138,7 @@ anim stand wander
 end
 ```
 
-When the file loads, every photo is processed together (`src/engine/w_photo.c`):
+When the file loads, every photo is processed together (`src/game/w_photo.c`, using shared `engine/photo.c` processing):
 
 1. **Background removed.** Transparent PNG cutouts use their alpha mask directly,
    preserving white eyes and transparent holes without adding a paper fringe.

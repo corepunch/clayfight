@@ -4,14 +4,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "engine/engine.h"
+#include "game/resources.h"
 
 void *I_Malloc(size_t size) { void *p = calloc(1, size); assert(p); return p; }
 void I_Log(const char *fmt, ...) {}
 void I_Error(const char *fmt, ...) { abort(); }
 pixel_t W_RGB(int r, int g, int b) { return 0xff000000u | r << 16 | g << 8 | b; }
 
-byte *W_LoadPNG(const char *path, int *w, int *h, char *err, size_t errlen)
+byte *image_load_rgba(const char *path, int *w, int *h, char *err, size_t errlen)
 {
     *w = *h = 12;
     byte *rgba = I_Malloc(12 * 12 * 4);

@@ -5,48 +5,53 @@
 
 #include "game/game.h"
 
-#define BAR_W 128
-#define BAR_H 7
-#define BAR_Y 8
+static void ST_Art(gra_t *g,int frame,int x,int y,int flags)
+{
+    const patch_t *p=W_Frame(g,frame);
+    V_DrawPatch(x,y,p,&g->palettes[W_FramePalette(g,frame)],flags);
+}
 
 void ST_Drawer(const int wins[2])
 {
-    for (int i = 0; i < 2; i++) {
-        const fighter_t *f = &level.fighters[i];
-        bool left = i == 0;
-        int x = left ? 8 : VIEWWIDTH - 8 - BAR_W;
-        if (gamemode != GM_TUG) {
-            V_FillRect(x - 1, BAR_Y - 1, BAR_W + 2, BAR_H + 2, 0xff000000);
-            V_FillRect(x, BAR_Y, BAR_W, BAR_H, 0xff601a1a);
-            int shown = (int)lroundf(f->shownhealth * BAR_W / MAX_HEALTH);
-            int real = f->health * BAR_W / MAX_HEALTH;
-            V_FillRect(left ? x : x + BAR_W - shown, BAR_Y, shown, BAR_H, 0xffffe0e0);
-            V_FillRect(left ? x : x + BAR_W - real, BAR_Y, real, BAR_H, f->health > 30 ? 0xfff0c820 : 0xfff03020);
-            V_FillRect(left ? x : x + BAR_W - real, BAR_Y, real, 2, 0xfffff0a0);
-        }
-        const char *name = f->def->name;
-        V_DrawText(FONT_SMALL, left ? x : x + BAR_W - V_TextWidth(FONT_SMALL, name), BAR_Y + BAR_H + 3, name);
+    gra_t *g=W_LoadGra("hud");
+    for(int i=0;i<2;i++){
+        const fighter_t *f=&level.fighters[i];
+        int damage=CLAMP((int)lroundf((MAX_HEALTH-f->shownhealth)*120.f/MAX_HEALTH),0,120);
+        ST_Art(g,(i?HUD_HEALTH_RIGHT:HUD_HEALTH_LEFT)+damage,i?184:32,8,0);
+        ST_Art(g,(i?HUD_STUN_RIGHT:HUD_STUN_LEFT)+CLAMP(f->brain*68/MAX_BRAIN,0,68),i?184:72,24,0);
 
-        for (int k = 0; k < (endurance || (campaign.active && campaign.finalbattle) ? 1 : options.rounds); k++) { // round win markers
-            int mx = left ? x + BAR_W - 6 - k * 8 : x + 1 + k * 8;
-            V_FillRect(mx, BAR_Y + BAR_H + 3, 5, 5, 0xff000000);
-            if (wins[i] > k)
-                V_FillRect(mx + 1, BAR_Y + BAR_H + 4, 3, 3, 0xffffd030);
+        // Retail heart script 57052 holds frame 1767, then beats through
+        // 1768/1769 at four ticks each. The beat interval shortens as HP falls.
+        int interval=MAX(12,f->health*60/MAX_HEALTH),phase=level.leveltime%interval;
+        int beat=phase<4?1:phase<8?2:0;
+        if(f->health<=0)beat=3+MIN(6,level.phasetime/4);
+        ST_Art(g,HUD_HEART+beat,i?332:4,0,i?V_FLIP:0);
+        ST_Art(g,HUD_BRAIN,i?288:48,16,i?V_FLIP:0);
+        int c=f->def->codeindex;
+        if(c>=0 && c<7){
+            const patch_t *p=W_Frame(g,HUD_NAME+c);
+            int x=i?328-p->w:8;
+            ST_Art(g,HUD_NAME+c,x+p->x,38+p->y,0);
+        }else{
+            int w=V_TextWidth(FONT_BIG,f->def->name);
+            float scale=MIN(0.7f,126.f/MAX(1,w));
+            V_DrawTextScaled(FONT_BIG,i?328-(int)lroundf(w*scale):8,38,
+                             f->def->name,0xffffffff,scale,0.7f);
+        }
+        if(wins[i]>0){
+            char n[12];snprintf(n,sizeof n,"%d",wins[i]);
+            V_DrawText(FONT_SMALL,i?190:142,41,n);
         }
     }
-    if (gamemode == GM_TUG) {
-        V_FillRect(8, 7, 304, 10, 0xff000000);
-        V_FillRect(9, 8, 302, 8, 0xff3070c0);
-        V_FillRect(9, 8, level.fighters[0].health * 302 / MAX_HEALTH, 8, 0xffdf8041);
-        V_FillRect(159, 7, 2, 10, 0xfff2dfbc);
+    if(gamemode==GM_TRAINING)V_DrawTextCentered(FONT_SMALL,VIEWWIDTH/2,VIEWHEIGHT-7,"TRAINING  /  ESC THEN Q TO LEAVE");
+    if(gamemode==GM_ENDURANCE)V_DrawTextCentered(FONT_SMALL,VIEWWIDTH/2,VIEWHEIGHT-7,"ENDURANCE  /  FOUR FIGHTERS PER TEAM");
+    if(gamemode==GM_TUG)V_DrawTextCentered(FONT_SMALL,VIEWWIDTH/2,VIEWHEIGHT-7,"TUG OF WAR");
+    char clock[12];
+    if(level.time<0)V_DrawTextCentered(FONT_SMALL,VIEWWIDTH/2,12,"--");
+    else{
+        snprintf(clock,sizeof clock,"%02d",CLAMP((level.time+TICRATE-1)/TICRATE,0,99));
+        V_DrawTextCentered(FONT_TIMER,VIEWWIDTH/2,8,clock);
     }
-    if (gamemode == GM_TRAINING) V_DrawTextCentered(FONT_SMALL, 160, VIEWHEIGHT - 7, "TRAINING  /  ESC THEN Q TO LEAVE");
-    if (gamemode == GM_ENDURANCE) V_DrawTextCentered(FONT_SMALL, 160, VIEWHEIGHT - 7, "ENDURANCE  /  FOUR FIGHTERS PER TEAM");
-    char clock[8];
-    if (level.time < 0) snprintf(clock, sizeof clock, "--");
-    else snprintf(clock, sizeof clock, "%02d", (level.time + TICRATE - 1) / TICRATE);
-    if (gamemode != GM_TUG) V_DrawTextCentered(FONT_BIG, VIEWWIDTH / 2, 5, clock);
-    else V_DrawTextCentered(FONT_SMALL, 160, 30, clock);
 }
 
 // --- centre-screen announcements (cf. hu_stuff.c) ---------------------------

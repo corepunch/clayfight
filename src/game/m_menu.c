@@ -1,4 +1,4 @@
-// Original PC menu vocabulary and original art, with a Clayfight creation entry.
+// Arcade artwork with Clayfight's game modes and fighter creation entry.
 #include <stdio.h>
 #include <string.h>
 #include "game/game.h"
@@ -60,18 +60,18 @@ void M_DrawArt(const char *file, int frame, int x, int y, float scale, int flags
 void M_Background(const char *heading)
 {
     V_Clear(0xff070609);
-    M_DrawArt("S04SELMO.GRA", 136, 24, 15, 1, V_FADE);
-    V_FillRect(24, 35, 272, 145, 0xff100d10);
-    gra_t *slabs = W_LoadGra("S04SLABS.GRA");
-    patch_t *border = W_Frame(slabs, 37);
-    V_DrawPatchScaled(24 + border->x * 2, 34 + border->y * 0.8f, border,
-                     &slabs->palettes[W_GuessPalette(border, slabs)], 0, 2, 0.8f);
-    V_FillRect(40, 45, 240, 123, 0xff100d10);
-    V_DrawTextCentered(FONT_BIG, 160, 14, heading);
+    M_DrawArt("select", 136, 0, 0, 1, V_FADE);
+    gra_t *slabs = W_LoadGra("title");
+    patch_t *panel = W_Frame(slabs, 45);
+    float sx=284.f/panel->w, sy=170.f/panel->h;
+    V_DrawPatchScaled(26 + panel->x*sx, 32 + panel->y*sy, panel,
+                     &slabs->palettes[W_FramePalette(slabs,45)], 0, sx, sy);
+    V_FillRect(36, 42, 264, 150, 0xff100d10);
+    V_DrawTextCentered(FONT_BIG, 168, 14, heading);
 #ifdef CLAY_IOS
-    V_DrawTextCentered(FONT_SMALL, 160, VIEWHEIGHT - 10, "D-PAD: MOVE   SELECT: CONFIRM   BACK: RETURN");
+    V_DrawTextCentered(FONT_SMALL, 168, VIEWHEIGHT - 10, "D-PAD: MOVE   SELECT: CONFIRM   BACK: RETURN");
 #else
-    V_DrawTextCentered(FONT_SMALL, 160, VIEWHEIGHT - 10, "ARROWS / WASD: MOVE   ENTER: SELECT   ESC: BACK");
+    V_DrawTextCentered(FONT_SMALL, 168, VIEWHEIGHT - 10, "ARROWS / WASD: MOVE   ENTER: SELECT   ESC: BACK");
 #endif
 }
 void M_StartTitle(void)
@@ -145,14 +145,19 @@ void M_Drawer(void)
 {
     if (gamestate == GS_TITLE) {
         V_Clear(0xff000000);
-        gra_t *g = W_LoadGra("S04TITLE.GRA");
-        int slab = MIN(39 + pagetic / 6, 45);
-        patch_t *p = W_Frame(g, slab);
-        M_DrawArt("S04TITLE.GRA", slab, 160 - p->w / 2, 90 - p->h / 2, 1, 0);
-        if (pagetic > 50) M_DrawArt("S04TITLE.GRA", 37, 95, 69, 1, 0);
-        if (pagetic > 80) M_DrawArt("S04TITLE.GRA", 19, 76, 93, 1, 0);
-        if (pagetic & 32) V_DrawTextCentered(FONT_SMALL, 160, 172, "PRESS START");
-        V_DrawTextCentered(FONT_SMALL, 160, VIEWHEIGHT - 10, "CLAYFIGHT  /  PRIMAL RAGE + YOUR CLAY FIGHTERS");
+        gra_t *g = W_LoadGra("title");
+        patch_t *p=W_Frame(g,45);
+        M_DrawArt("title",45,168-p->w/2,120-p->h/2,1,0);
+        if(pagetic>=35){
+            int frame=MIN(13,(pagetic-35)/3);
+            V_DrawPatch(14,14,W_Frame(g,frame),&g->palettes[W_FramePalette(g,frame)],0);
+        }
+        if(pagetic>=70){
+            int frame=14+MIN(5,(pagetic-70)/3);
+            V_DrawPatch(15,19,W_Frame(g,frame),&g->palettes[W_FramePalette(g,frame)],0);
+        }
+        if (pagetic & 32) V_DrawTextCentered(FONT_SMALL, 168, 190, "PRESS START");
+        V_DrawTextCentered(FONT_SMALL, 168, VIEWHEIGHT - 10, "CLAYFIGHT  /  PRIMAL RAGE + YOUR CLAY FIGHTERS");
         return;
     }
     const char *headings[] = {"MAIN MENU", "CONFIG OPTIONS", "MODIFY CONTROLS", "START MENU", "OPTIONS MENU", "ADJUST VOLUME", "SOUND TEST"};
@@ -164,21 +169,21 @@ void M_Drawer(void)
         const char *lines[] = {"LEFT PLAYER: WASD", "HI QUICK / FIERCE: R / T", "LO QUICK / FIERCE: F / G", "RIGHT PLAYER: ARROWS",
             "HI QUICK / FIERCE: O / P", "LO QUICK / FIERCE: L / ;", "P2 JOINS WITH AN ATTACK", "ESC: PAUSE   Q: LEAVE PAUSED FIGHT", "GAMEPADS: D-PAD + FOUR FACE BUTTONS"};
 #endif
-        for (int i = 0; i < 9; i++) V_DrawTextCentered(FONT_SMALL, 160, 47 + 15 * i, lines[i]);
+        for (int i = 0; i < 9; i++) V_DrawTextCentered(FONT_SMALL, 168, 47 + 15 * i, lines[i]);
         return;
     }
     if (page == MENU_VOLUME) {
-        V_DrawTextCentered(FONT_BIG, 160, 85, options.volume ? "GAME SAMPLES" : "MUTE");
+        V_DrawTextCentered(FONT_BIG, 168, 85, options.volume ? "GAME SAMPLES" : "MUTE");
         V_FillRect(65, 119, 190, 10, 0xff302821);
         V_FillRect(65, 119, options.volume * 19, 10, 0xffd59a46);
-        V_DrawTextCentered(FONT_SMALL, 160, 151, "LEFT / RIGHT TO ADJUST VOLUME");
-        V_DrawTextCentered(FONT_SMALL, 160, 175, "ENTER: SAVE AND EXIT"); return;
+        V_DrawTextCentered(FONT_SMALL, 168, 151, "LEFT / RIGHT TO ADJUST VOLUME");
+        V_DrawTextCentered(FONT_SMALL, 168, 175, "ENTER: SAVE AND EXIT"); return;
     }
     if (page == MENU_SOUND) {
-        V_DrawTextCentered(FONT_BIG, 160, 80, sounditems[cursor]);
-        V_DrawTextCentered(FONT_SMALL, 160, 119, "UP / DOWN: SELECT SAMPLE");
-        V_DrawTextCentered(FONT_SMALL, 160, 143, "ENTER: PLAY");
-        V_DrawTextCentered(FONT_SMALL, 160, 177, options.sound ? "ESC: OPTIONS MENU" : "GAME SAMPLES ARE MUTED IN CONFIG OPTIONS"); return;
+        V_DrawTextCentered(FONT_BIG, 168, 80, sounditems[cursor]);
+        V_DrawTextCentered(FONT_SMALL, 168, 119, "UP / DOWN: SELECT SAMPLE");
+        V_DrawTextCentered(FONT_SMALL, 168, 143, "ENTER: PLAY");
+        V_DrawTextCentered(FONT_SMALL, 168, 177, options.sound ? "ESC: OPTIONS MENU" : "GAME SAMPLES ARE MUTED IN CONFIG OPTIONS"); return;
     }
     char labels[7][64];
     if (page == MENU_CONFIG) {
@@ -194,11 +199,11 @@ void M_Drawer(void)
     int spacing = page == MENU_CONFIG ? 19 : page == MENU_MAIN ? 33 : 26;
     for (int i = 0; i < n; i++) {
         if (i == cursor) {
-            V_FillRect(46, y - 4, 228, page == MENU_CONFIG ? 17 : 21, 0xff37241b);
+            V_FillRect(46, y - 4, 244, page == MENU_CONFIG ? 17 : 21, 0xff37241b);
             V_DrawText(FONT_SMALL, 49, y, ">");
         }
         const char *label = page == MENU_CONFIG ? labels[i] : page == MENU_START ? startitems[i] : page == MENU_OPTIONS ? optionitems[i] : mainitems[i];
-        V_DrawTextCentered(page == MENU_CONFIG ? FONT_SMALL : FONT_BIG, 160, y, label);
+        V_DrawTextCentered(page == MENU_CONFIG ? FONT_SMALL : FONT_BIG, 168, y, label);
         y += spacing;
     }
 }

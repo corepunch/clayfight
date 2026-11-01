@@ -249,14 +249,15 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--host", default="0.0.0.0")
     parser.add_argument("--port", type=int, default=8765)
-    parser.add_argument("--creatures", default=str(ROOT / "creatures"))
-    parser.add_argument("--data", default=str(ROOT / "primalrage"))
+    parser.add_argument("--creatures", default=str(ROOT / "data/creatures"))
+    parser.add_argument("--executable", type=Path, default=ROOT / "build/clayfight")
+    parser.add_argument("--data", default=str(ROOT / "data/primrage"))
     parser.add_argument("--ready", type=Path)
     parser.add_argument("--cert")
     parser.add_argument("--key")
     args = parser.parse_args()
     token = secrets.token_urlsafe(24)
-    server = ThreadingHTTPServer((args.host, args.port), handler(CaptureStore(args.creatures, args.data, ROOT / "clayfight"), token))
+    server = ThreadingHTTPServer((args.host, args.port), handler(CaptureStore(args.creatures, args.data, args.executable.resolve()), token))
     scheme = "http"
     if args.cert:
         context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)

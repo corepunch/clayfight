@@ -1,17 +1,16 @@
-# Primal Rage game data and anything derived from it: your own copy, never committed
-primalrage/
-creatures/primalrage/
-
-# build output
+# Private retail data, references and source recordings.
+/data/primrage/
+/data/primalrage/
+/data/creatures/primalrage/
+/reference/
+/art/reference/
+**/sources/
+# Reproducible output and local settings.
 build/
-/clayfight
+dist/
 *.bmp
-
-# local clutter
-.DS_Store
+*.dSYM/
 __pycache__/
-.claude/settings.local.json
-
-# personal Xcode state
-ios/**/xcuserdata/
+.DS_Store
+xcuserdata/
 *.xcuserstate
