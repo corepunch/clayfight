@@ -15,6 +15,7 @@ def main():
     available=(original/'136102-1044b.29l').exists()
     if not available and not os.getenv('CLAY_ALLOW_MISSING_ROM'):raise SystemExit('Supply the primrageo arcade ROMs in data/primrage/')
     if data.exists(): shutil.rmtree(data)
+    data.mkdir(parents=True)
     if available:shutil.copytree(original,data/'primrage',ignore=shutil.ignore_patterns('.*'))
     else:print('Compile-only build: proprietary arcade ROMs omitted')
     if (ROOT/'data/cage-BSD.txt').exists():shutil.copy2(ROOT/'data/cage-BSD.txt',data/'cage-BSD.txt')
