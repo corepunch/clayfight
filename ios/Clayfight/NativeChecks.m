@@ -33,7 +33,7 @@ void CFRunNativeChecks(void) {
         NSError *missing;check(CFNormalizePhoto(cut,1,80,@{@"zoom":@100},YES,NO,&missing)==nil,@"handheld requires a head measurement");
         NSString *dir=[CFStoragePath()stringByAppendingPathComponent:@"native-qa"],*photos=[dir stringByAppendingPathComponent:@"photos"];
         [NSFileManager.defaultManager createDirectoryAtPath:photos withIntermediateDirectories:YES attributes:nil error:&error];
-        NSArray *poses=[NSJSONSerialization JSONObjectWithData:[NSData dataWithContentsOfURL:[NSBundle.mainBundle URLForResource:@"poses" withExtension:@"json"]] options:0 error:&error];
+        NSArray *poses=[NSJSONSerialization JSONObjectWithData:[NSData dataWithContentsOfURL:[NSBundle.mainBundle URLForResource:@"poses" withExtension:@"json" subdirectory:@"data"]] options:0 error:&error];
         NSString *art=[CFStoragePath()stringByAppendingPathComponent:@"guide-qa"];
         [NSFileManager.defaultManager createDirectoryAtPath:art withIntermediateDirectories:YES attributes:nil error:nil];
         UIImage *sheet=[[[UIGraphicsImageRenderer alloc]initWithSize:CGSizeMake(1280,1040) format:format]imageWithActions:^(UIGraphicsImageRendererContext *ctx){

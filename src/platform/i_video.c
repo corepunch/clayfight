@@ -1,6 +1,7 @@
 // i_video.c -- SDL2 window, framebuffer presentation and input (cf. i_video.c)
 
 #include <SDL.h>
+#include <string.h>
 
 #include "platform/platform.h"
 
@@ -9,6 +10,8 @@ static SDL_Renderer *renderer;
 static SDL_Texture *texture;
 static bool quit;
 static bool headless;
+static bool focused=true, keys[SDL_NUM_SCANCODES];
+void G_ClearInput(void);
 
 #define MAXPADS 2
 static SDL_GameController *pads[MAXPADS];
@@ -79,7 +82,8 @@ static int I_TranslateKey(SDL_Scancode sc)
         return '1' + (sc - SDL_SCANCODE_1);
     switch (sc) {
     case SDL_SCANCODE_0: return '0';
-    case SDL_SCANCODE_RETURN: return KEY_ENTER;
+    case SDL_SCANCODE_RETURN:
+    case SDL_SCANCODE_KP_ENTER: return KEY_ENTER;
     case SDL_SCANCODE_ESCAPE: return KEY_ESCAPE;
     case SDL_SCANCODE_SPACE: return KEY_SPACE;
     case SDL_SCANCODE_TAB: return '\t';
@@ -154,16 +158,27 @@ void I_StartTic(void)
         case SDL_KEYDOWN:
         case SDL_KEYUP: {
             int key = I_TranslateKey(e.key.keysym.scancode);
-            if (key && !e.key.repeat)
-                post(e.type == SDL_KEYDOWN ? ev_keydown : ev_keyup, key);
+            bool down=e.type==SDL_KEYDOWN;
+            if (key && !e.key.repeat && keys[e.key.keysym.scancode]!=down) {
+                keys[e.key.keysym.scancode]=down;
+                post(down ? ev_keydown : ev_keyup,key);
+            }
             break;
         }
+        case SDL_WINDOWEVENT:
+            if(e.window.event==SDL_WINDOWEVENT_FOCUS_LOST) {
+                focused=false;memset(keys,0,sizeof keys);memset(padstate,0,sizeof padstate);
+                D_ProcessEvents(NULL,0);G_ClearInput();
+            } else if(e.window.event==SDL_WINDOWEVENT_FOCUS_GAINED)focused=true;
+            break;
         case SDL_CONTROLLERDEVICEADDED:
             I_OpenPad(e.cdevice.which);
             break;
         case SDL_CONTROLLERDEVICEREMOVED:
             for (int i = 0; i < MAXPADS; i++) {
                 if (pads[i] && SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(pads[i])) == e.cdevice.which) {
+                    for(int k=0;k<16;k++)if(padstate[i][k])post(ev_keyup,PADKEY(i,k));
+                    memset(padstate[i],0,sizeof padstate[i]);
                     SDL_GameControllerClose(pads[i]);
                     pads[i] = NULL;
                 }
@@ -171,7 +186,7 @@ void I_StartTic(void)
             break;
         }
     }
-    I_PollPads();
+    if(focused)I_PollPads();
 }
 
 bool I_QuitRequested(void)

@@ -15,7 +15,7 @@ void M_CreateTicker(void)
 {
     if (M_CheckParm("-shots") || M_CheckParm("-checkflow")) return;
     if (!launched) {
-        I_StartCreator(M_ParmValue("-creatures", "creatures"), M_ParmValue("-data", "primalrage"));
+        I_StartCreator(M_ParmValue("-creatures", "data/creatures"), M_ParmValue("-data", "data/primrage"));
         launched = true;
     }
     createtics++;

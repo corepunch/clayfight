@@ -1,4 +1,4 @@
-// platform.h -- everything that talks to the machine: SDL video, input,
+// platform.h -- everything that talks to the machine: SDL desktop / native iOS video, input,
 // sound and timing (cf. Doom's i_*.h, doomtype.h, d_event.h). The engine and
 // game layers build on this; nothing here knows about them.
 
@@ -14,8 +14,8 @@
 typedef uint8_t byte;
 typedef uint32_t pixel_t; // 0xAARRGGBB
 
-#define SCREENWIDTH 640
-#define SCREENHEIGHT 400
+#define SCREENWIDTH 672
+#define SCREENHEIGHT 480
 
 // Fixed simulation rate. Doom runs at 35Hz; arcade fighters run at 60Hz.
 #define TICRATE 60
@@ -26,12 +26,14 @@ typedef uint32_t pixel_t; // 0xAARRGGBB
 #ifndef MAX
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #endif
+#ifndef CLAMP
 #define CLAMP(x, lo, hi) MIN(MAX(x, lo), hi)
+#endif
 
 // --- i_system.c: timing, memory and errors (cf. i_system.h) ----------------
 int I_GetTime(void); // tics since startup
 void I_Sleep(int ms);
-void I_Shutdown(void); // close sound, graphics and SDL
+void I_Shutdown(void); // close game audio and capture companion
 void I_Error(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
 void I_Log(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 void *I_Malloc(size_t size); // zeroed, never returns NULL
@@ -40,7 +42,7 @@ void *I_Malloc(size_t size); // zeroed, never returns NULL
 void I_InitGraphics(bool headless);
 void I_ShutdownGraphics(void);
 void I_FinishUpdate(const pixel_t *screen);
-void I_StartTic(void); // pump SDL events into the event queue
+void I_StartTic(void); // shared engine pumps events before each frame
 bool I_QuitRequested(void);
 void I_SaveScreenshot(const pixel_t *screen, const char *path);
 // Local phone companion. Subprocess launch stays in the platform layer.
@@ -50,7 +52,7 @@ const char *I_CreatorURL(bool phone);
 void I_OpenCreator(void);
 void I_CloseCreator(void);
 
-// --- i_sound.c: SDL audio mixer for 8-bit PCM samples (cf. i_sound.h) ------
+// --- i_sound.c: compatibility calls into the shared PCM mixer -------------
 typedef struct {
     const byte *data; // unsigned 8-bit mono
     int length;
@@ -70,8 +72,7 @@ typedef enum {
 
 // Keyboard events carry a key from this table (cf. doomkeys.h): keys are
 // physical positions, named after the QWERTY key there, so WASD stays WASD
-// on any layout. Printable keys are their lowercase ASCII. i_video.c
-// translates from SDL. Game controllers are mapped onto virtual keys above
+// on any layout. Printable keys are their lowercase ASCII. the game host translates from platform keys. Game controllers are mapped onto virtual keys above
 // KEY_PAD so bindings treat both the same way.
 enum {
     KEY_ENTER = 13,

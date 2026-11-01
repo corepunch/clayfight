@@ -1,127 +1,80 @@
 # Clayfight
 
-A feasibility prototype for a fighting game where kids photograph their own
-stop-motion clay creatures and make them fight, the way Primal Rage digitised
-stop-motion puppets. Step one is to rebuild Primal Rage's own fights and
-character select on a small Doom-style engine (C99 + SDL2), running on the
-original DOS game's data.
+A standalone C fighting game where children photograph clay creatures and make
+them fight. Desktop uses SDL2; iPhone/iPad use UIKit, AVFoundation and native
+touch/GameController input. The game has no dependency on Nile Archive or Lua.
 
-## Build and run
+The current runtime reads the supported Primal Rage 2.3 December 1994 arcade
+chips directly: original RLE sprites, palettes, animation bytecode, normal and
+power moves, stages, HUD, contact artwork and CAGE sounds. Custom clay fighters
+use local photos and text definitions. The framebuffer is 672×480, twice the
+arcade's 336×240 view.
 
-Put the Primal Rage PC files (`INDEX`, `S04*.GRA`, `PRAGE.EXE`, ...) in `primalrage/`, then:
+## Build and play
 
-```bash
-make
-./clayfight
+SDL2 is the only native platform dependency. Python 3 and Node are used by the
+workshop and tests; Pillow is needed only by image import/review tools.
+
+```sh
+make CFLAGS='-O2 -g -Werror'
+make resources                  # validate your local data/primrage chip set
+make run
+make run ARGS='-fight boxer lizard -cpu'
+make run ARGS='-warp select'
 ```
 
-Controls: left player uses WASD to move and R T / F G for high quick/fierce
-and low quick/fierce; right player uses the arrow keys and O P / L ;. Enter
-starts, Esc pauses, the backtick key shows hit boxes. Game controllers work too.
-Press a right-player button on the select screen to join; otherwise you fight
-the CPU.
+Place your own supported arcade chips in `data/primrage/`, or import them with
+`python3 tools/import_resources.py /path/to/primrage`. ROMs and source recordings
+are ignored by Git. DOS data and converted retail definitions are not runtime
+inputs. The native iOS project is [ios/Clayfight.xcodeproj](ios/Clayfight.xcodeproj),
+scheme **Clayfight**; see [the iOS guide](ios/README.md).
 
-The game renders at **640×400**, exactly twice the DOS version's **320×200**
-frame, with square pixels and nearest-neighbor presentation. Drawing and
-simulation use that 320×200 coordinate space; legacy DOS sprites, scenery and
-fonts enlarge 2×. Custom fighter PNGs use two pixels per world unit: the bundled
-clay figures stand about 184 pixels tall, with tightly fitted canvases shared
-across their poses. Transparent cutouts retain their alpha mask without a white
-paper backing. The game keeps the same 31-colour palette, hotspot and simulation
-silhouette.
+Desktop player one: WASD, R/T for high quick/fierce, F/G for low quick/fierce,
+Enter starts. Player two: arrows, O/P and L/semicolon. Pair R+T or F+G for power
+attacks. Hold away to guard, down-away against lows; attack buttons cancel guard.
+Alternate left/right to recover faster while dizzy. Escape pauses, then Q
+returns to the menu; backtick shows hit boxes. Two SDL game controllers are
+supported on desktop, and two GameController devices on iOS.
 
-The four saved clay action sheets are playable prototypes: `BOXER`, `LIZARD`,
-`CYCLOPS`, and `CRAB`. Try `./clayfight -fight boxer lizard`. Their stand pose is
-184 screen pixels tall; punch, kick, block and pain poses come from the concept
-sheets. Walking and other missing reactions use fallback poses, so this is a
-resolution and art experiment, not a finished animation set. Rebuild the sliced
-photos and creature files with `python3 tools/import_concepts.py` (needs Pillow).
-The atlas manifest stores explicit pixel rectangles and a foot `pivot` relative
-to each rectangle. The four columns describe pose order; their crop widths vary
-to keep extended fists and feet intact. Align each pivot to the same destination
-point when displaying the atlas directly. The importer exports every pose at
-the final 2× sprite size on a shared transparent canvas with aligned feet,
-and validates crop edges and pivots. After
-rebuilding, run `python3 tests/concepts.py` to check all 64 poses and exports.
+Create Fighter opens the local browser workshop on desktop and native camera,
+photo/video import and pose alignment on iOS. Photo sources and drafts remain
+in local storage. The desktop helper is `tools/capture_server.py`; the executable
+it validates against is `build/clayfight` in this checkout.
 
-Developer switches (Doom style): `-data <dir>`, `-creatures <dir>`,
-`-fight sauron sauron [-cpu] [-stage n]`, `-warp select`, `-script`, `-boxes`,
-`-checkanims`, `-sheet NAME`, `-nosound`, and a headless mode that writes BMP screenshots:
-`-shots out/f -every 60 -tics 3000`.
+## Implementation
 
-## Layout
+- `src/game/`: combat, fighter/CPU state machines, ROM/script decoding, menus,
+  campaign, HUD and resource adapters. Gameplay is unchanged by extraction.
+- `src/platform/`: desktop SDL input/window/audio and the workshop subprocess.
+- `src/support/`: indexed CPU rasterizer, photo processing and stb image decode,
+  carried over from Nile Archive with matching pixel output.
+- `src/sound/`: standalone CAGE DSP interpreter and command decoding.
+- `ios/Clayfight/`: native host, camera workshop and native platform adapters.
+- `data/creatures/`, `assets/concepts/`, `docs/`: runtime photos, source atlases,
+  prompts, asset/state catalogue and reviewed captures.
 
-Three folders, one header each; each layer only uses the ones below it. File
-names follow Doom's, so its source is a map to this one.
+See [Primal Rage combat](docs/primal-rage-combat.md) for fighter/AI behavior and
+fidelity limits, [the arcade catalogue](docs/primal-rage-arcade.md) for artwork,
+and [creature format](docs/creature-format.md) for authored fighters.
 
-| Folder | Header | Files | Role |
-|---|---|---|---|
-| `src/platform/` | `platform.h` | `i_system i_video i_sound d_event` | SDL2: window, input, sound mixer, timing, event queue; basic types |
-| `src/engine/` | `engine.h` | `w_gra w_exe w_png w_photo v_video m_random m_argv` | `.GRA` archives (Doom: `w_wad`), tables inside `PRAGE.EXE`, PNG photos turned into sprite files; 640×400 framebuffer and fonts; random numbers; command line |
-| `src/game/` | `game.h` | `info p_creature p_script p_check` | fighter state tables (Doom: `info`) loaded from creature files; Primal Rage's bytecode interpreter (`-script`) and the check against it |
-| | | `p_mobj p_user p_map p_inter p_enemy p_effect p_tick` | play simulation: state machine, ticcmd control, hit boxes, damage, CPU AI, particles, round flow |
-| | | `r_main r_stage st_stuff s_sound` | the fight scene and arenas, HUD and announcements, sound effects |
-| | | `g_game sel_main m_menu d_main` | game flow and bindings, character select (Doom: `wi_stuff`), title, startup and the 60Hz loop |
+## Verification
 
-As in Doom, input becomes a `ticcmd_t` each tic; the CPU opponent fills in the
-same `ticcmd_t`, so humans and AI share every rule. CPUs use Primal Rage's
-original per-fighter matchup, distance and difficulty tables, playing its
-joystick macros with separate pressed and held input bits. Original fighters
-inherit their own style; photographed fighters default to Sauron, overridable
-with `ai 0..6` in their creature file. See [the AI decoding and verification](docs/primal-rage-ai.md).
+```sh
+make test                       # no ROMs: combat, pixels, photos, SDL input, JS
+make test-retail                 # focused ROM combat plus real workshop publication
+make test-full                   # explicit complete arcade audit/capture export
+make lint                       # source paths, project references, Python syntax
+```
 
-## Creature files and Primal Rage's own scripts
+`build/test-combat` accepts name filters, `--list`, `--retail` and optional
+`--captures <existing-directory>`. One invocation runs every selected combat
+case. The retail case validates 280 animation/move slots, all original power
+choices, real guard collisions, seven CPU styles and photo dizzy fallbacks.
 
-Fighters are plain-text creature files ([docs/creature-format.md](docs/creature-format.md)),
-loaded at startup from `creatures/` and its subfolders. A creature can be made
-from photographs: `creatures/gloop/` is a test creature built from 15 shots
-(rendered stand-ins for now, see `tools/makeclay.py`). The photo pipeline
-removes the background, scales every frame consistently, reduces the set to
-one 31-colour palette and puts the hotspot at the feet (`src/engine/w_photo.c`).
-The Primal Rage fighters live in `creatures/primalrage/`. `make` builds them from your
-`primalrage/PRAGE.EXE` with `tools/pr2creature.py`. The converter flattens
-the game's own move scripts and tables: frame order and timing, root motion,
-damage, stun, attack boxes, palettes.
+## Migration
 
-For planning your own photos, see the
-[Primal Rage animation frame counts and capture targets](docs/primal-rage-animation-frames.md):
-per-animation counts for all seven PC fighters, shared-image totals, and a
-suggested shot list for a custom creature.
-
-The game's bytecode interpreter is kept as a reference: `-script` plays from
-`PRAGE.EXE` directly (`src/engine/w_exe.c`, `src/game/p_script.c`). `make check` compares the two
-tic by tic, and all 266 animations and moves match. How the original works,
-and why we convert instead of following it, is in
-[docs/primal-rage-scripts.md](docs/primal-rage-scripts.md).
-`tools/extract_scripts.py` dumps all the tables to JSON.
-`tools/primal_ai.py` also exports just the fully decoded AI tables. These
-remain derived game data, read from your local `PRAGE.EXE`, and are not committed.
-
-`make checkai` tests runtime AI integration across all 49 original matchups
-and three menu difficulties. `make checkai-original AI_PYTHON=/path/to/venv/bin/python`
-compares the production C implementation with the original x86 routines in
-Unicorn; install the small `tests/requirements-ai.txt` into that venv first.
-It checks decisions and macro inputs, while Clayfight's physics and unavailable
-special-move handlers remain separate fidelity limits.
-
-`make check` also tests legacy sprite enlargement, native photo detail,
-clipping, hotspots, mirroring, scaling and hit flashes. `make checkvideo` runs
-these renderer checks independently of the original game data.
-
-## What comes from the original data
-
-* `.GRA` format, fully decoded: chunk chain (2 = RLE pixels, 5 = palettes,
-  6 = frame table w/h/hotspot/offset), per-row RLE (literal / run / skip),
-  1-based sub-palette indices, unsigned 8-bit 11kHz PCM in the `SD` files.
-* All sprites, palettes (including each fighter's alternate colours), arenas,
-  select-screen portraits and name plates, title art, both fonts, sounds.
-* From `PRAGE.EXE`, via the converter: animation scripts, move table, attack
-  boxes, fighter palettes.
-* Original CPU matchup/distance bands, ten-slot macro matrices, difficulty
-  weights and joystick macro timing, read from `PRAGE.EXE` at runtime.
-* Still rebuilt by Clayfight: hurt boxes (from the sprite silhouettes), stage
-  layouts, palettes for unmapped artwork (chosen automatically as the smoothest
-  result), sound triggers, physics and the adapter from game state to AI observations.
-  The AI uses deterministic host randomness in place of the DOS hardware timer.
-  The select temple and large portraits use
-  explicit palette bindings; original fighter palettes come from PRAGE.EXE.
+This checkout restores Clayfight as a standalone arcade-only project from
+Nile Archive commit `5de9dcf`. DOS loaders, conversion tools, x86 AI/oracles and
+unused DOS reference data have been removed. Existing repository history is
+retained. See [MIGRATION.md](docs/MIGRATION.md) for provenance, verification and
+local asset locations.

@@ -42,14 +42,20 @@ static void P_ArtBox(const fighter_t *f, float x0, float y0, float x1, float y1,
 
 bool P_AttackBox(const fighter_t *f, box_t *out)
 {
-    if (!f->attack || !f->attacklive || (f->curbox < 0 && p_scripted))
+    if (!f->attack || !f->attacklive || (f->curbox < 0 && p_scripted && f->def->codeindex >= 0))
         return false;
-    if (p_scripted) {
-        // the move table's box: 3 px units placed from the frame anchor
-        // (arcade units, scaled to the PC art)
+    if (p_scripted && f->def->codeindex >= 0) {
+        // Native 26.6 coordinates: box bytes shift by 8, anchors by 6
+        // (68020 0x249d2..0x24a50). Thus one box unit is four pixels.
         const psbox_t *b = &f->smove.boxes[f->curbox];
-        float x0 = -f->anim.ax * ARCADE_XSCALE + b->x * 3, y0 = -f->anim.ay * ARCADE_YSCALE + b->y * 3;
-        P_ArtBox(f, x0, y0, x0 + b->w * 3, y0 + b->h * 3, out);
+        int ax = f->anim.ax, ay = f->anim.ay;
+        if (f->def->codeindex == 5 || f->def->codeindex == 6) {
+            // Native 0x27048: Diablo/Chaos use adjusted combat anchors.
+            ax += (127 - ax) / 8;
+            ay += (95 - ay) / 8;
+        }
+        float x0 = -ax + b->x * 4, y0 = -ay + b->y * 4;
+        P_ArtBox(f, x0, y0, x0 + b->w * 4, y0 + b->h * 4, out);
         return true;
     }
     const movedef_t *mv = &f->def->moves[f->move];

@@ -1,7 +1,7 @@
 // sel_main.c -- character select screen (cf. wi_stuff.c: its own ticker,
 // responder and drawer, entered and left through d_main/g_game)
 //
-// Art comes from S04SELMO.GRA: the temple's four-over-three reliefs become
+// Art comes from select: the temple's four-over-three reliefs become
 // coloured heads under the two cursors. Clay fighters have their own pages.
 
 #include <stdlib.h>
@@ -11,7 +11,7 @@
 
 #include "game/game.h"
 
-#define BACKDROP 136 // 272x170 temple
+#define BACKDROP 136 // 336x240 arcade temple
 #define LAUNCH_DELAY 50
 
 static gra_t *selgra;
@@ -24,20 +24,19 @@ static int palcache[512];
 
 // The temple's stone heads, in visual order (four above three). Keep the
 // original roster on this page; photographs occupy matching pages of tiles.
-static const int templecodes[7] = {0, 2, 4, 1, 6, 3, 5};
 static const int headframes[7] = {140, 139, 148, 147, 103, 102, 111};
 static const int headpalettes[7] = {28, 30, 29, 1, 2, 0, 27};
 static const int tilex[7] = {57, 98, 138, 179, 77, 118, 158};
 static const int tiley[7] = {19, 19, 19, 19, 46, 46, 46};
 static int slots[MAXROSTER + 7], numslots;
 
-// The complete S04 temple is 272x170. Centre it in the DOS 320x200 frame
-// without stretching or clipping; the framebuffer enlarges every texel 2x.
-#define TEMPLE_X ((VIEWWIDTH - 272) / 2)
-#define TEMPLE_Y ((VIEWHEIGHT - 170) / 2)
-#define TEMPLE_SX 1.f
-#define TEMPLE_SY 1.f
-#define PODIUM_TOP (TEMPLE_Y + 142)
+// The complete arcade temple fills the native view, with every texel 2x.
+// Tile registration converts the old authored cell coordinates only.
+#define TEMPLE_X 0
+#define TEMPLE_Y 0
+#define TEMPLE_SX (336.f / 272.f)
+#define TEMPLE_SY (240.f / 170.f)
+#define PODIUM_TOP 200
 #define PREVIEW_FEET (PODIUM_TOP + 4)
 static int TileX(int cell) { return (int)lroundf(TEMPLE_X + tilex[cell] * TEMPLE_SX); }
 static int TileY(int cell) { return (int)lroundf(TEMPLE_Y + tiley[cell] * TEMPLE_SY); }
@@ -72,22 +71,29 @@ static void SEL_Move(int pl, int bit)
     }
 }
 
+void SEL_Reset(void)
+{
+    cursor[0]=cursor[1]=0;chosen[0]=chosen[1]=false;
+    joined[0]=true;joined[1]=false;seltime=launch=rosterpage=0;
+    teamcount[0]=teamcount[1]=0;
+}
+
 void SEL_Start(void)
 {
     if (!selgra) {
-        selgra = W_LoadGra("S04SELMO.GRA");
+        selgra = W_LoadGra("select");
         for (int i = 0; i < 512; i++)
             palcache[i] = -1;
         for (int i = 0; i < numroster; i++) // the arcade's default pick
             if (!strcasecmp(roster[i]->name, "SAURON"))
                 cursor[0] = cursor[1] = i;
     }
-    P_RefreshRoster(M_ParmValue("-creatures", "creatures"));
+    P_RefreshRoster(M_ParmValue("-creatures", "data/creatures"));
     numslots = 7;
     for (int j = 0; j < 7; j++) {
         slots[j] = -1;
         for (int i = 0; i < numroster; i++)
-            if (roster[i]->codeindex == templecodes[j]) slots[j] = i;
+            if (roster[i]->codeindex == X_U8(0x6aca6+j)) slots[j] = i;
     }
     for (int i = 0; i < numroster; i++)
         if (roster[i]->codeindex < 0 || roster[i]->codeindex >= 7) slots[numslots++] = i;
@@ -217,9 +223,9 @@ static void SEL_Preview(int pl)
         const patch_t *pose = P_StatePatch(&d->states[a->first + i]);
         if (pose) height = MAX(height, pose->h);
     }
-    float sc = 66.f / height;
+    float sc = 94.f / height;
     bool flip = (d->facesleft == (pl == 0)) != st->hflip;
-    int cx = TEMPLE_X + (pl ? 204 : 68);
+    int cx = (pl ? 252 : 84);
     // The stand hotspot is the foot position. Centring the whole bitmap
     // includes long tails and pushes the feet off the podium toward P2.
     int x = cx;
@@ -227,7 +233,7 @@ static void SEL_Preview(int pl)
     V_DrawPatchScaled(x, y, p, &d->base->palettes[d->palette], flip ? V_FLIP : 0, sc, sc);
     float labelscale = MIN(0.65f, 132.f / V_TextWidth(FONT_BIG, d->name));
     int labelx = pl ? 294 - (int)(V_TextWidth(FONT_BIG, d->name) * labelscale) : 26;
-    V_DrawTextScaled(FONT_BIG, labelx, TEMPLE_Y + 72, d->name, 0xffffe080, labelscale, 0.9f);
+    V_DrawTextScaled(FONT_BIG, labelx, 102, d->name, 0xffffe080, labelscale, 0.9f);
 }
 
 static void SEL_Tile(int cell, int fighter)
@@ -241,8 +247,8 @@ static void SEL_Tile(int cell, int fighter)
         if (selected < 0) return; // unselected heads are carved into the temple
         const patch_t *p = W_Frame(selgra, headframes[cell]);
         const palette_t *pal = &selgra->palettes[headpalettes[cell]];
-        V_DrawPatchScaled(x + (int)lroundf(p->x * TEMPLE_SX),
-                          y + (int)lroundf(p->y * TEMPLE_SY), p, pal, 0, TEMPLE_SX, TEMPLE_SY);
+        // Arcade head hotspots encode their absolute position in the temple.
+        V_DrawPatch(0, 0, p, pal, 0);
     } else {
         // Clay close-ups replace the stone heads on their own temple page.
         const fighterdef_t *d = roster[fighter];
@@ -269,18 +275,18 @@ static void SEL_Tile(int cell, int fighter)
 void SEL_Drawer(void)
 {
     V_Clear(0xff08030b);
-    SEL_DrawArt(BACKDROP, TEMPLE_X, TEMPLE_Y, TEMPLE_SX, TEMPLE_SY);
+    SEL_DrawArt(BACKDROP, 0, 0, 1, 1);
     const char *heading = gamemode == GM_ENDURANCE ? "SELECT FOUR FIGHTERS"
         : gamemode == GM_TRAINING && chosen[0] ? "SELECT OPPONENT" : "START TO SELECT";
-    V_DrawTextScaled(FONT_BIG, 160 - (int)(V_TextWidth(FONT_BIG, heading) * 0.375f),
+    V_DrawTextScaled(FONT_BIG, 168 - (int)(V_TextWidth(FONT_BIG, heading) * 0.375f),
                      3, heading, 0xffffe080, 0.75f, 0.85f);
 
     if (rosterpage) {
         // Cover all seven reliefs, including unused cells of a final page.
         for (int cell = 0; cell < 7; cell++) {
             int x = TileX(cell), y = TileY(cell);
-            V_FillRect(x - 1, y - 1, 39, 26, 0xff383c40);
-            SEL_Box(x - 1, y - 1, 39, 26, 0xff74787c);
+            V_FillRect(x - 1, y - 1, 48, 36, 0xff383c40);
+            SEL_Box(x - 1, y - 1, 48, 36, 0xff74787c);
         }
     }
     for (int cell = 0; cell < 7; cell++) {
@@ -288,7 +294,7 @@ void SEL_Drawer(void)
         if (slot < numslots && slots[slot] >= 0) SEL_Tile(cell, slots[slot]);
     }
     for (int pl = 0; pl < 2; pl++) {
-        int cx = TEMPLE_X + (pl ? 204 : 68);
+        int cx = (pl ? 252 : 84);
         const patch_t *podium = W_Frame(selgra, 105 + pl);
         SEL_DrawArt(105 + pl, cx - podium->w / 2, PODIUM_TOP, 1, 1);
         if (joined[pl] || chosen[pl]) SEL_Preview(pl);
@@ -298,17 +304,17 @@ void SEL_Drawer(void)
     if (gamemode == GM_ENDURANCE) {
         char team[40];
         snprintf(team, sizeof team, "TEAM 1 %d/4   TEAM 2 %d/4", teamcount[0], teamcount[1]);
-        V_DrawTextColor(FONT_SMALL, 25, 185, team, green);
+        V_DrawTextColor(FONT_SMALL, 15, 220, team, green);
     } else if (!joined[1]) {
 #ifdef CLAY_IOS
-        V_DrawTextColor(FONT_SMALL, 25, 185, "SELECT: CONFIRM", cyan);
+        V_DrawTextColor(FONT_SMALL, 15, 220, "SELECT: CONFIRM", cyan);
 #else
-        V_DrawTextColor(FONT_SMALL, 25, 185, "ENTER: CONFIRM", cyan);
+        V_DrawTextColor(FONT_SMALL, 15, 220, "ENTER: CONFIRM", cyan);
 #endif
     }
     if (!joined[1] && !chosen[1]) {
-        if ((seltime / 30) % 2 == 0) V_DrawTextColor(FONT_SMALL, 210, 185, "P2: PRESS START", green);
-    } else if (chosen[0] && chosen[1]) V_DrawTextCentered(FONT_BIG, 160, 110, "FIGHT!");
+        if ((seltime / 30) % 2 == 0) V_DrawTextColor(FONT_SMALL, 205, 220, "P2: PRESS START", green);
+    } else if (chosen[0] && chosen[1]) V_DrawTextCentered(FONT_BIG, 168, 150, "FIGHT!");
 
     char footer[72];
 #ifdef CLAY_IOS
@@ -320,5 +326,5 @@ void SEL_Drawer(void)
              rosterpage ? "NEXT PAGE" : "CLAY FIGHTERS");
 #endif
     V_FillRect(0, VIEWHEIGHT - 9, VIEWWIDTH, 9, 0xff141218);
-    V_DrawTextCentered(FONT_SMALL, 160, VIEWHEIGHT - 7, footer);
+    V_DrawTextCentered(FONT_SMALL, 168, VIEWHEIGHT - 7, footer);
 }

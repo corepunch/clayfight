@@ -1,9 +1,8 @@
 // p_mobj.c -- fighters: spawning, state machine, physics (cf. p_mobj.c)
 //
 // Two animation drivers sit behind P_SetAnim / P_StartMove:
-//  - creature files (default): Doom-style state chains from p_creature.c;
-//  - -script: Primal Rage's own bytecode run by p_script.c, kept as a
-//    reference to check converted creature files against.
+//  - photographs: local state chains from p_creature.c;
+//  - original fighters: arcade bytecode run by p_script.c.
 // Everything else (control, physics, hits) is shared.
 
 #include <math.h>
@@ -104,7 +103,7 @@ static void P_EnterState(fighter_t *f, int index, bool carry)
 
 bool P_SetAnim(fighter_t *f, animnum_t anim)
 {
-    if (p_scripted)
+    if (p_scripted && f->def->codeindex >= 0)
         return P_ScriptAnim(f, anim);
     if (anim < 0 || anim >= f->def->numanims || !f->def->anims[anim].count)
         return false;
@@ -124,7 +123,7 @@ bool P_SetAnim(fighter_t *f, animnum_t anim)
 // Start the move in `slot` (see game.h); `next` follows when it ends.
 bool P_StartMove(fighter_t *f, int slot, animnum_t next)
 {
-    if (p_scripted)
+    if (p_scripted && f->def->codeindex >= 0)
         return P_ScriptMove(f, slot, next);
     const movedef_t *mv = &f->def->moves[slot];
     if (!mv->valid || !P_SetAnim(f, mv->anim))
@@ -170,6 +169,10 @@ static void P_AnimateCreature(fighter_t *f)
             f->tics = 1;
             break;
         }
+        if (st->kind == K_HIT && (f->stun > 0 || f->dizzy)) {
+            f->tics = 1;
+            break;
+        }
         animnum_t n = f->animnext;
         if (!P_SetAnim(f, n != ANIM_NONE ? n : ANIM_STAND))
             P_SetAnim(f, ANIM_STAND);
@@ -197,7 +200,7 @@ static void P_AnimateCreature(fighter_t *f)
         P_SetAnim(f, ANIM_GETUP);
 }
 
-// --- script mode (-script): Primal Rage's bytecode ------------------------------
+// --- original fighter arcade bytecode ------------------------------
 
 // Which of the game's 62 core rows plays each engine animation.
 static const signed char scriptrows[NUMSTDANIMS] = {
@@ -268,18 +271,18 @@ static bool P_ScriptMove(fighter_t *f, int slot, animnum_t next)
 {
     if (!PS_Move(f->def->codeindex, slot, &f->smove))
         return false;
-    f->move = slot;
     f->smoveattack = (attackinfo_t){
         .damage = f->smove.damage,
         .level = f->smove.hitclass == 4 || f->smove.hitclass == 5 ? LOW : HIGH,
         .push = 1.5f + f->smove.strength,
         .knockdown = f->smove.strength >= 3,
     };
-    bool air = slot / 4 == MG_JUMP || slot / 4 == MG_AIR;
+    bool air = P_MoveIsAir(slot);
     f->pstate = (state_t){.anim = air ? ANIM_AIRMOVE : ANIM_MOVE, .kind = air ? K_AIR : K_ATTACK};
     f->animnext = next;
     f->scripthold = air;
     P_ScriptStart(f, f->smove.row, 2); // every move starts at 2 tics per frame
+    f->move = slot;
     f->attack = &f->smoveattack;
     P_ScriptBoxes(f);
     A_Swish(f, NULL);
@@ -307,7 +310,8 @@ static void P_ScriptThink(fighter_t *f)
     if (P_InAnim(f, ANIM_DOWN)) {
         if (--f->downtimer <= 0 && !f->dead)
             P_SetAnim(f, ANIM_GETUP);
-    } else if (f->anim.done && !f->scripthold) {
+    } else if (f->anim.done && !f->scripthold &&
+               !(f->state->kind == K_HIT && (f->stun > 0 || f->dizzy))) {
         animnum_t n = f->animnext != ANIM_NONE ? f->animnext : (animnum_t)f->pstate.anim;
         P_SetAnim(f, n < NUMSTDANIMS ? n : ANIM_STAND);
     }
@@ -315,7 +319,7 @@ static void P_ScriptThink(fighter_t *f)
 
 void P_AnimTick(fighter_t *f)
 {
-    if (p_scripted)
+    if (p_scripted && f->def->codeindex >= 0)
         P_ScriptThink(f);
     else
         P_AnimateCreature(f);
@@ -372,6 +376,14 @@ void P_FighterThinker(fighter_t *f)
 
     if (f->stun > 0)
         f->stun--;
+    if (!f->dead) {
+        if (f->dizzy)
+            f->brain = MAX(0, f->brain - 1);
+        else if (f->braindelay > 0)
+            f->braindelay--;
+        else if (!f->dizzypending && f->state->kind == K_FREE)
+            f->brain = MAX(0, f->brain - 1);
+    }
     if (f->flash > 0)
         f->flash--;
     if (f->shownhealth > f->health)

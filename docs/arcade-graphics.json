@@ -1,0 +1,2125 @@
+{
+  "revision": "primrageo 2.3 Dec 1994",
+  "framebuffer": [
+    672,
+    480
+  ],
+  "character_home_stages": [
+    0,
+    4,
+    2,
+    3,
+    6,
+    1,
+    5
+  ],
+  "arena_width": 1080,
+  "stages": [
+    {
+      "index": 0,
+      "name": "THE COVE",
+      "sky_maps": [
+        "0x1db2f8",
+        "0x1db2f8"
+      ],
+      "floor_maps": [
+        "0x1d76e0",
+        "0x1d7be2"
+      ],
+      "sky_bank": 3,
+      "floor_bank": 1,
+      "horizon": 164,
+      "palette_cycles": [
+        {
+          "length": 5,
+          "ticks": 8,
+          "signed_offset": -7,
+          "group": 2
+        },
+        {
+          "length": 4,
+          "ticks": 8,
+          "signed_offset": -12,
+          "group": 2
+        },
+        {
+          "length": 16,
+          "ticks": 10,
+          "signed_offset": -48,
+          "group": 2
+        }
+      ],
+      "object_count": 10,
+      "objects": [
+        {
+          "descriptor": "0x6ba54",
+          "source": "0x2d7",
+          "direct_frame": true,
+          "x_26_6": -21504,
+          "y_26_6": 0,
+          "z_26_6": 3072,
+          "flags": "0x0",
+          "color": "0x200",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6ba64",
+          "source": "0x2d8",
+          "direct_frame": true,
+          "x_26_6": 17408,
+          "y_26_6": 0,
+          "z_26_6": 3072,
+          "flags": "0x0",
+          "color": "0x200",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6ba74",
+          "source": "0x2d9",
+          "direct_frame": true,
+          "x_26_6": -4096,
+          "y_26_6": 0,
+          "z_26_6": 3392,
+          "flags": "0x0",
+          "color": "0x240",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6ba84",
+          "source": "0x2da",
+          "direct_frame": true,
+          "x_26_6": -10240,
+          "y_26_6": 0,
+          "z_26_6": 3904,
+          "flags": "0x0",
+          "color": "0x280",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6ba94",
+          "source": "0x2db",
+          "direct_frame": true,
+          "x_26_6": -11648,
+          "y_26_6": 0,
+          "z_26_6": 4224,
+          "flags": "0x0",
+          "color": "0x280",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6baa4",
+          "source": "0x56eb8",
+          "direct_frame": false,
+          "x_26_6": -4448,
+          "y_26_6": 0,
+          "z_26_6": 9362,
+          "flags": "0x0",
+          "color": "0x2c0",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6d4d0",
+          "source": "0x56f3c",
+          "direct_frame": false,
+          "x_26_6": -10304,
+          "y_26_6": 0,
+          "z_26_6": 3867,
+          "flags": "0x0",
+          "color": "0x300",
+          "scale": 1.0,
+          "frame_ticks": 6,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6d4c0",
+          "source": "0x56f26",
+          "direct_frame": false,
+          "x_26_6": -4688,
+          "y_26_6": 0,
+          "z_26_6": 3381,
+          "flags": "0x0",
+          "color": "0x300",
+          "scale": 1.0,
+          "frame_ticks": 6,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bab4",
+          "source": "0x2dd",
+          "direct_frame": true,
+          "x_26_6": 6304,
+          "y_26_6": 0,
+          "z_26_6": 9362,
+          "flags": "0x0",
+          "color": "0x2c0",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": true
+        },
+        {
+          "descriptor": "0x6bac4",
+          "source": "0x2de",
+          "direct_frame": true,
+          "x_26_6": 13984,
+          "y_26_6": 0,
+          "z_26_6": 9362,
+          "flags": "0x0",
+          "color": "0x2c0",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": true
+        }
+      ],
+      "reference_pixels": [
+        {
+          "x": 168,
+          "y": 100,
+          "rgb": [
+            115,
+            16,
+            65
+          ],
+          "argb": "ff731041"
+        },
+        {
+          "x": 168,
+          "y": 230,
+          "rgb": [
+            106,
+            57,
+            0
+          ],
+          "argb": "ff6a3900"
+        }
+      ],
+      "capture": "review/arcade/after/stage-0.png"
+    },
+    {
+      "index": 1,
+      "name": "THE INFERNO",
+      "sky_maps": [
+        "0x1e343c",
+        "0x1e343c"
+      ],
+      "floor_maps": [
+        "0x1d80e4",
+        "0x1d85e6"
+      ],
+      "sky_bank": 7,
+      "floor_bank": 1,
+      "horizon": 164,
+      "palette_cycles": [
+        {
+          "length": 11,
+          "ticks": 3,
+          "signed_offset": -1,
+          "group": 2
+        },
+        {
+          "length": 15,
+          "ticks": 3,
+          "signed_offset": -12,
+          "group": 2
+        },
+        {
+          "length": 9,
+          "ticks": 5,
+          "signed_offset": -128,
+          "group": 1
+        }
+      ],
+      "object_count": 9,
+      "objects": [
+        {
+          "descriptor": "0x6bae4",
+          "source": "0x281",
+          "direct_frame": true,
+          "x_26_6": 6656,
+          "y_26_6": 0,
+          "z_26_6": 3968,
+          "flags": "0x0",
+          "color": "0x240",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6baf4",
+          "source": "0x282",
+          "direct_frame": true,
+          "x_26_6": 11264,
+          "y_26_6": 0,
+          "z_26_6": 4608,
+          "flags": "0x0",
+          "color": "0x280",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bb04",
+          "source": "0x283",
+          "direct_frame": true,
+          "x_26_6": -6656,
+          "y_26_6": 0,
+          "z_26_6": 4672,
+          "flags": "0x0",
+          "color": "0x2c0",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6d060",
+          "source": "0x27d",
+          "direct_frame": true,
+          "x_26_6": -23904,
+          "y_26_6": 0,
+          "z_26_6": 1348,
+          "flags": "0x0",
+          "color": "0x300",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6d070",
+          "source": "0x27e",
+          "direct_frame": true,
+          "x_26_6": 19750,
+          "y_26_6": 0,
+          "z_26_6": 2439,
+          "flags": "0x4000",
+          "color": "0x300",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6d0a0",
+          "source": "0x56b6c",
+          "direct_frame": false,
+          "x_26_6": -2476,
+          "y_26_6": 0,
+          "z_26_6": 11294,
+          "flags": "0x0",
+          "color": "0x380",
+          "scale": 1.0,
+          "frame_ticks": 6,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6d090",
+          "source": "0x56b38",
+          "direct_frame": false,
+          "x_26_6": 1556,
+          "y_26_6": 0,
+          "z_26_6": 2763,
+          "flags": "0x0",
+          "color": "0x340",
+          "scale": 1.0,
+          "frame_ticks": 4,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6d090",
+          "source": "0x56b38",
+          "direct_frame": false,
+          "x_26_6": -10684,
+          "y_26_6": 0,
+          "z_26_6": 1250,
+          "flags": "0x0",
+          "color": "0x340",
+          "scale": 1.0,
+          "frame_ticks": 4,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6d080",
+          "source": "0x27f",
+          "direct_frame": true,
+          "x_26_6": 30582,
+          "y_26_6": 0,
+          "z_26_6": -570,
+          "flags": "0x4000",
+          "color": "0x300",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        }
+      ],
+      "reference_pixels": [
+        {
+          "x": 168,
+          "y": 100,
+          "rgb": [
+            197,
+            74,
+            16
+          ],
+          "argb": "ffc54a10"
+        },
+        {
+          "x": 168,
+          "y": 230,
+          "rgb": [
+            98,
+            24,
+            16
+          ],
+          "argb": "ff621810"
+        }
+      ],
+      "capture": "review/arcade/after/stage-1.png"
+    },
+    {
+      "index": 2,
+      "name": "THE STRIP",
+      "sky_maps": [
+        "0x1df5b4",
+        "0x1df5b4"
+      ],
+      "floor_maps": [
+        "0x1dc4fa",
+        "0x1dcb7c"
+      ],
+      "sky_bank": 5,
+      "floor_bank": 3,
+      "horizon": 148,
+      "palette_cycles": [
+        {
+          "length": 6,
+          "ticks": 10,
+          "signed_offset": -1,
+          "group": 2
+        }
+      ],
+      "object_count": 8,
+      "objects": [
+        {
+          "descriptor": "0x6bb14",
+          "source": "0x2a8",
+          "direct_frame": true,
+          "x_26_6": 20480,
+          "y_26_6": 0,
+          "z_26_6": 2816,
+          "flags": "0x0",
+          "color": "0x200",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bb24",
+          "source": "0x56eac",
+          "direct_frame": false,
+          "x_26_6": -31744,
+          "y_26_6": 0,
+          "z_26_6": 1024,
+          "flags": "0x0",
+          "color": "0x280",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bb34",
+          "source": "0x56eb2",
+          "direct_frame": false,
+          "x_26_6": -25600,
+          "y_26_6": 0,
+          "z_26_6": 1024,
+          "flags": "0x0",
+          "color": "0x280",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bb44",
+          "source": "0x56e7a",
+          "direct_frame": false,
+          "x_26_6": 14336,
+          "y_26_6": 0,
+          "z_26_6": 5120,
+          "flags": "0x0",
+          "color": "0x240",
+          "scale": 1.0,
+          "frame_ticks": 4,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bb54",
+          "source": "0x2b0",
+          "direct_frame": true,
+          "x_26_6": -10240,
+          "y_26_6": 0,
+          "z_26_6": 4096,
+          "flags": "0x0",
+          "color": "0x2c0",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bb64",
+          "source": "0x2b1",
+          "direct_frame": true,
+          "x_26_6": -16000,
+          "y_26_6": 0,
+          "z_26_6": 4096,
+          "flags": "0x0",
+          "color": "0x2c0",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bb74",
+          "source": "0x2b2",
+          "direct_frame": true,
+          "x_26_6": -16896,
+          "y_26_6": 0,
+          "z_26_6": 5120,
+          "flags": "0x0",
+          "color": "0x300",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bb84",
+          "source": "0x2b3",
+          "direct_frame": true,
+          "x_26_6": -7168,
+          "y_26_6": 0,
+          "z_26_6": 5120,
+          "flags": "0x0",
+          "color": "0x300",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        }
+      ],
+      "reference_pixels": [
+        {
+          "x": 168,
+          "y": 100,
+          "rgb": [
+            197,
+            230,
+            238
+          ],
+          "argb": "ffc5e6ee"
+        },
+        {
+          "x": 168,
+          "y": 230,
+          "rgb": [
+            98,
+            106,
+            90
+          ],
+          "argb": "ff626a5a"
+        }
+      ],
+      "capture": "review/arcade/after/stage-2.png"
+    },
+    {
+      "index": 3,
+      "name": "THE TOMB",
+      "sky_maps": [
+        "0x1e243a",
+        "0x1e243a"
+      ],
+      "floor_maps": [
+        "0x1d8ae8",
+        "0x1d8fea"
+      ],
+      "sky_bank": 6,
+      "floor_bank": 1,
+      "horizon": 164,
+      "palette_cycles": [],
+      "object_count": 32,
+      "objects": [
+        {
+          "descriptor": "0x6bba4",
+          "source": "0x56f52",
+          "direct_frame": false,
+          "x_26_6": -26112,
+          "y_26_6": 0,
+          "z_26_6": 1536,
+          "flags": "0x0",
+          "color": "0x200",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bbb4",
+          "source": "0x56f5e",
+          "direct_frame": false,
+          "x_26_6": -13312,
+          "y_26_6": 0,
+          "z_26_6": 2560,
+          "flags": "0x0",
+          "color": "0x200",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bbc4",
+          "source": "0x56f6a",
+          "direct_frame": false,
+          "x_26_6": -5120,
+          "y_26_6": 0,
+          "z_26_6": 2688,
+          "flags": "0x0",
+          "color": "0x200",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bbd4",
+          "source": "0x56f76",
+          "direct_frame": false,
+          "x_26_6": 16896,
+          "y_26_6": 0,
+          "z_26_6": 3072,
+          "flags": "0x0",
+          "color": "0x200",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bbe4",
+          "source": "0x56f82",
+          "direct_frame": false,
+          "x_26_6": 25600,
+          "y_26_6": 0,
+          "z_26_6": 1536,
+          "flags": "0x0",
+          "color": "0x200",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bbf4",
+          "source": "0x56f8e",
+          "direct_frame": false,
+          "x_26_6": -17728,
+          "y_26_6": 0,
+          "z_26_6": 2624,
+          "flags": "0x0",
+          "color": "0x240",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bc04",
+          "source": "0x56f9a",
+          "direct_frame": false,
+          "x_26_6": -9152,
+          "y_26_6": 0,
+          "z_26_6": 3072,
+          "flags": "0x0",
+          "color": "0x240",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bc14",
+          "source": "0x56fa6",
+          "direct_frame": false,
+          "x_26_6": 0,
+          "y_26_6": 0,
+          "z_26_6": 3072,
+          "flags": "0x0",
+          "color": "0x240",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bc24",
+          "source": "0x56fb2",
+          "direct_frame": false,
+          "x_26_6": 9216,
+          "y_26_6": 0,
+          "z_26_6": 3008,
+          "flags": "0x0",
+          "color": "0x240",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bc34",
+          "source": "0x56fbe",
+          "direct_frame": false,
+          "x_26_6": 17920,
+          "y_26_6": 0,
+          "z_26_6": 2560,
+          "flags": "0x0",
+          "color": "0x240",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bc44",
+          "source": "0x56fca",
+          "direct_frame": false,
+          "x_26_6": -16896,
+          "y_26_6": 0,
+          "z_26_6": 3072,
+          "flags": "0x0",
+          "color": "0x280",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bc54",
+          "source": "0x56fd6",
+          "direct_frame": false,
+          "x_26_6": -9216,
+          "y_26_6": 0,
+          "z_26_6": 3520,
+          "flags": "0x0",
+          "color": "0x280",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bc64",
+          "source": "0x56fe2",
+          "direct_frame": false,
+          "x_26_6": -3072,
+          "y_26_6": 0,
+          "z_26_6": 3648,
+          "flags": "0x0",
+          "color": "0x280",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bc74",
+          "source": "0x56fee",
+          "direct_frame": false,
+          "x_26_6": 3584,
+          "y_26_6": 0,
+          "z_26_6": 3648,
+          "flags": "0x0",
+          "color": "0x280",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bc84",
+          "source": "0x56ffa",
+          "direct_frame": false,
+          "x_26_6": 10240,
+          "y_26_6": 0,
+          "z_26_6": 3520,
+          "flags": "0x0",
+          "color": "0x280",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bc94",
+          "source": "0x57006",
+          "direct_frame": false,
+          "x_26_6": 17920,
+          "y_26_6": 0,
+          "z_26_6": 3136,
+          "flags": "0x0",
+          "color": "0x280",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bca4",
+          "source": "0x57012",
+          "direct_frame": false,
+          "x_26_6": -26112,
+          "y_26_6": 0,
+          "z_26_6": 1536,
+          "flags": "0x0",
+          "color": "0x2c0",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": true
+        },
+        {
+          "descriptor": "0x6bcb4",
+          "source": "0x57016",
+          "direct_frame": false,
+          "x_26_6": -13312,
+          "y_26_6": 0,
+          "z_26_6": 2560,
+          "flags": "0x0",
+          "color": "0x2c0",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": true
+        },
+        {
+          "descriptor": "0x6bcc4",
+          "source": "0x5701a",
+          "direct_frame": false,
+          "x_26_6": -5120,
+          "y_26_6": 0,
+          "z_26_6": 2688,
+          "flags": "0x0",
+          "color": "0x2c0",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": true
+        },
+        {
+          "descriptor": "0x6bcd4",
+          "source": "0x5701e",
+          "direct_frame": false,
+          "x_26_6": 16896,
+          "y_26_6": 0,
+          "z_26_6": 3072,
+          "flags": "0x0",
+          "color": "0x2c0",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": true
+        },
+        {
+          "descriptor": "0x6bce4",
+          "source": "0x57022",
+          "direct_frame": false,
+          "x_26_6": 25600,
+          "y_26_6": 0,
+          "z_26_6": 1536,
+          "flags": "0x0",
+          "color": "0x2c0",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": true
+        },
+        {
+          "descriptor": "0x6bcf4",
+          "source": "0x57026",
+          "direct_frame": false,
+          "x_26_6": -17728,
+          "y_26_6": 0,
+          "z_26_6": 2624,
+          "flags": "0x0",
+          "color": "0x2c0",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": true
+        },
+        {
+          "descriptor": "0x6bd04",
+          "source": "0x5702a",
+          "direct_frame": false,
+          "x_26_6": -9152,
+          "y_26_6": 0,
+          "z_26_6": 3072,
+          "flags": "0x0",
+          "color": "0x2c0",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": true
+        },
+        {
+          "descriptor": "0x6bd14",
+          "source": "0x5702e",
+          "direct_frame": false,
+          "x_26_6": 0,
+          "y_26_6": 0,
+          "z_26_6": 3072,
+          "flags": "0x0",
+          "color": "0x2c0",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": true
+        },
+        {
+          "descriptor": "0x6bd24",
+          "source": "0x57032",
+          "direct_frame": false,
+          "x_26_6": 9216,
+          "y_26_6": 0,
+          "z_26_6": 3008,
+          "flags": "0x0",
+          "color": "0x2c0",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": true
+        },
+        {
+          "descriptor": "0x6bd34",
+          "source": "0x57036",
+          "direct_frame": false,
+          "x_26_6": 17920,
+          "y_26_6": 0,
+          "z_26_6": 2560,
+          "flags": "0x0",
+          "color": "0x2c0",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": true
+        },
+        {
+          "descriptor": "0x6bd44",
+          "source": "0x5703a",
+          "direct_frame": false,
+          "x_26_6": -16896,
+          "y_26_6": 0,
+          "z_26_6": 3072,
+          "flags": "0x0",
+          "color": "0x2c0",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": true
+        },
+        {
+          "descriptor": "0x6bd54",
+          "source": "0x5703e",
+          "direct_frame": false,
+          "x_26_6": -9216,
+          "y_26_6": 0,
+          "z_26_6": 3520,
+          "flags": "0x0",
+          "color": "0x2c0",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": true
+        },
+        {
+          "descriptor": "0x6bd64",
+          "source": "0x57042",
+          "direct_frame": false,
+          "x_26_6": -3072,
+          "y_26_6": 0,
+          "z_26_6": 3648,
+          "flags": "0x0",
+          "color": "0x2c0",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": true
+        },
+        {
+          "descriptor": "0x6bd74",
+          "source": "0x57046",
+          "direct_frame": false,
+          "x_26_6": 3584,
+          "y_26_6": 0,
+          "z_26_6": 3648,
+          "flags": "0x0",
+          "color": "0x2c0",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": true
+        },
+        {
+          "descriptor": "0x6bd84",
+          "source": "0x5704a",
+          "direct_frame": false,
+          "x_26_6": 10240,
+          "y_26_6": 0,
+          "z_26_6": 3520,
+          "flags": "0x0",
+          "color": "0x2c0",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": true
+        },
+        {
+          "descriptor": "0x6bd94",
+          "source": "0x5704e",
+          "direct_frame": false,
+          "x_26_6": 17920,
+          "y_26_6": 0,
+          "z_26_6": 3136,
+          "flags": "0x0",
+          "color": "0x2c0",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": true
+        }
+      ],
+      "reference_pixels": [
+        {
+          "x": 168,
+          "y": 100,
+          "rgb": [
+            205,
+            82,
+            82
+          ],
+          "argb": "ffcd5252"
+        },
+        {
+          "x": 168,
+          "y": 230,
+          "rgb": [
+            0,
+            57,
+            0
+          ],
+          "argb": "ff003900"
+        }
+      ],
+      "capture": "review/arcade/after/stage-3.png"
+    },
+    {
+      "index": 4,
+      "name": "THE CLIFF",
+      "sky_maps": [
+        "0x1d64de",
+        "0x1d64de"
+      ],
+      "floor_maps": [
+        "0x1d9ef0",
+        "0x1da3f2"
+      ],
+      "sky_bank": 0,
+      "floor_bank": 2,
+      "horizon": 168,
+      "palette_cycles": [],
+      "object_count": 8,
+      "objects": [
+        {
+          "descriptor": "0x6bda4",
+          "source": "0x2c5",
+          "direct_frame": true,
+          "x_26_6": -22528,
+          "y_26_6": 0,
+          "z_26_6": 4032,
+          "flags": "0x0",
+          "color": "0x200",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bdb4",
+          "source": "0x2c6",
+          "direct_frame": true,
+          "x_26_6": 22528,
+          "y_26_6": 0,
+          "z_26_6": 4032,
+          "flags": "0x0",
+          "color": "0x200",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bdc4",
+          "source": "0x2c7",
+          "direct_frame": true,
+          "x_26_6": -21248,
+          "y_26_6": 0,
+          "z_26_6": 4544,
+          "flags": "0x0",
+          "color": "0x280",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bdd4",
+          "source": "0x2c8",
+          "direct_frame": true,
+          "x_26_6": -15360,
+          "y_26_6": 0,
+          "z_26_6": 4544,
+          "flags": "0x0",
+          "color": "0x280",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bde4",
+          "source": "0x2c9",
+          "direct_frame": true,
+          "x_26_6": 14080,
+          "y_26_6": 0,
+          "z_26_6": 4544,
+          "flags": "0x0",
+          "color": "0x240",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bdf4",
+          "source": "0x2ca",
+          "direct_frame": true,
+          "x_26_6": 20736,
+          "y_26_6": 0,
+          "z_26_6": 4544,
+          "flags": "0x0",
+          "color": "0x240",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6be04",
+          "source": "0x56e9a",
+          "direct_frame": false,
+          "x_26_6": 4672,
+          "y_26_6": 0,
+          "z_26_6": 5041,
+          "flags": "0x0",
+          "color": "0x2c0",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6be14",
+          "source": "0x2cc",
+          "direct_frame": true,
+          "x_26_6": 11072,
+          "y_26_6": 0,
+          "z_26_6": 5041,
+          "flags": "0x0",
+          "color": "0x2c0",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": true
+        }
+      ],
+      "reference_pixels": [
+        {
+          "x": 168,
+          "y": 100,
+          "rgb": [
+            180,
+            189,
+            205
+          ],
+          "argb": "ffb4bdcd"
+        },
+        {
+          "x": 168,
+          "y": 230,
+          "rgb": [
+            131,
+            148,
+            197
+          ],
+          "argb": "ff8394c5"
+        }
+      ],
+      "capture": "review/arcade/after/stage-4.png"
+    },
+    {
+      "index": 5,
+      "name": "THE RUINS",
+      "sky_maps": [
+        "0x1e1438",
+        "0x1e1438"
+      ],
+      "floor_maps": [
+        "0x1da8f4",
+        "0x1dadf6"
+      ],
+      "sky_bank": 6,
+      "floor_bank": 2,
+      "horizon": 164,
+      "palette_cycles": [
+        {
+          "length": 6,
+          "ticks": 10,
+          "signed_offset": -1,
+          "group": 2
+        }
+      ],
+      "object_count": 10,
+      "objects": [
+        {
+          "descriptor": "0x6be24",
+          "source": "0x56ea6",
+          "direct_frame": false,
+          "x_26_6": -28160,
+          "y_26_6": 0,
+          "z_26_6": 1024,
+          "flags": "0x0",
+          "color": "0x200",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6be34",
+          "source": "0x2ce",
+          "direct_frame": true,
+          "x_26_6": 15360,
+          "y_26_6": 0,
+          "z_26_6": 3072,
+          "flags": "0x0",
+          "color": "0x240",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6be44",
+          "source": "0x2cf",
+          "direct_frame": true,
+          "x_26_6": 32000,
+          "y_26_6": 0,
+          "z_26_6": -512,
+          "flags": "0x0",
+          "color": "0x240",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6be54",
+          "source": "0x2d0",
+          "direct_frame": true,
+          "x_26_6": -3328,
+          "y_26_6": 0,
+          "z_26_6": 4352,
+          "flags": "0x0",
+          "color": "0x280",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6be64",
+          "source": "0x2d1",
+          "direct_frame": true,
+          "x_26_6": -12480,
+          "y_26_6": 0,
+          "z_26_6": 4352,
+          "flags": "0x0",
+          "color": "0x280",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6be74",
+          "source": "0x2d2",
+          "direct_frame": true,
+          "x_26_6": -20480,
+          "y_26_6": 0,
+          "z_26_6": 4736,
+          "flags": "0x0",
+          "color": "0x2c0",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6be84",
+          "source": "0x2d3",
+          "direct_frame": true,
+          "x_26_6": -9216,
+          "y_26_6": 0,
+          "z_26_6": 4736,
+          "flags": "0x0",
+          "color": "0x2c0",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6be94",
+          "source": "0x2d4",
+          "direct_frame": true,
+          "x_26_6": -576,
+          "y_26_6": 0,
+          "z_26_6": 4736,
+          "flags": "0x0",
+          "color": "0x2c0",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bea4",
+          "source": "0x2d5",
+          "direct_frame": true,
+          "x_26_6": 8640,
+          "y_26_6": 0,
+          "z_26_6": 4736,
+          "flags": "0x0",
+          "color": "0x2c0",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6beb4",
+          "source": "0x2d6",
+          "direct_frame": true,
+          "x_26_6": 17856,
+          "y_26_6": 0,
+          "z_26_6": 4736,
+          "flags": "0x0",
+          "color": "0x2c0",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        }
+      ],
+      "reference_pixels": [
+        {
+          "x": 168,
+          "y": 100,
+          "rgb": [
+            197,
+            189,
+            180
+          ],
+          "argb": "ffc5bdb4"
+        },
+        {
+          "x": 168,
+          "y": 230,
+          "rgb": [
+            82,
+            82,
+            74
+          ],
+          "argb": "ff52524a"
+        }
+      ],
+      "capture": "review/arcade/after/stage-5.png"
+    },
+    {
+      "index": 6,
+      "name": "THE HOLLOWS",
+      "sky_maps": [
+        "0x1de5b2",
+        "0x1de5b2"
+      ],
+      "floor_maps": [
+        "0x1d94ec",
+        "0x1d99ee"
+      ],
+      "sky_bank": 4,
+      "floor_bank": 2,
+      "horizon": 180,
+      "palette_cycles": [],
+      "object_count": 21,
+      "objects": [
+        {
+          "descriptor": "0x6bec4",
+          "source": "0x2df",
+          "direct_frame": true,
+          "x_26_6": -19840,
+          "y_26_6": 0,
+          "z_26_6": 1408,
+          "flags": "0x0",
+          "color": "0x200",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bed4",
+          "source": "0x2e0",
+          "direct_frame": true,
+          "x_26_6": 19840,
+          "y_26_6": 0,
+          "z_26_6": 1408,
+          "flags": "0x0",
+          "color": "0x200",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bee4",
+          "source": "0x2e1",
+          "direct_frame": true,
+          "x_26_6": -28672,
+          "y_26_6": 0,
+          "z_26_6": -512,
+          "flags": "0x0",
+          "color": "0x240",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bef4",
+          "source": "0x2e2",
+          "direct_frame": true,
+          "x_26_6": -20480,
+          "y_26_6": 0,
+          "z_26_6": -512,
+          "flags": "0x0",
+          "color": "0x240",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bf04",
+          "source": "0x2e3",
+          "direct_frame": true,
+          "x_26_6": -12288,
+          "y_26_6": 0,
+          "z_26_6": -512,
+          "flags": "0x0",
+          "color": "0x240",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bf14",
+          "source": "0x2e4",
+          "direct_frame": true,
+          "x_26_6": -4096,
+          "y_26_6": 0,
+          "z_26_6": -512,
+          "flags": "0x0",
+          "color": "0x240",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bf24",
+          "source": "0x2e5",
+          "direct_frame": true,
+          "x_26_6": 4096,
+          "y_26_6": 0,
+          "z_26_6": -512,
+          "flags": "0x0",
+          "color": "0x240",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bf34",
+          "source": "0x2e6",
+          "direct_frame": true,
+          "x_26_6": 12288,
+          "y_26_6": 0,
+          "z_26_6": -512,
+          "flags": "0x0",
+          "color": "0x240",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bf44",
+          "source": "0x2e7",
+          "direct_frame": true,
+          "x_26_6": 20480,
+          "y_26_6": 0,
+          "z_26_6": -512,
+          "flags": "0x0",
+          "color": "0x240",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bf54",
+          "source": "0x2e8",
+          "direct_frame": true,
+          "x_26_6": 28672,
+          "y_26_6": 0,
+          "z_26_6": -512,
+          "flags": "0x0",
+          "color": "0x240",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bf64",
+          "source": "0x2e9",
+          "direct_frame": true,
+          "x_26_6": -14080,
+          "y_26_6": 0,
+          "z_26_6": 2816,
+          "flags": "0x0",
+          "color": "0x280",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bf74",
+          "source": "0x173",
+          "direct_frame": true,
+          "x_26_6": -6400,
+          "y_26_6": 0,
+          "z_26_6": 2816,
+          "flags": "0x0",
+          "color": "0x280",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bf84",
+          "source": "0x2eb",
+          "direct_frame": true,
+          "x_26_6": -8960,
+          "y_26_6": 0,
+          "z_26_6": 2048,
+          "flags": "0x0",
+          "color": "0x280",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bf94",
+          "source": "0x2ec",
+          "direct_frame": true,
+          "x_26_6": -256,
+          "y_26_6": 0,
+          "z_26_6": 2048,
+          "flags": "0x0",
+          "color": "0x280",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bfa4",
+          "source": "0x2ed",
+          "direct_frame": true,
+          "x_26_6": 6912,
+          "y_26_6": 0,
+          "z_26_6": 2048,
+          "flags": "0x0",
+          "color": "0x280",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6bff4",
+          "source": "0x2f2",
+          "direct_frame": true,
+          "x_26_6": 1920,
+          "y_26_6": 0,
+          "z_26_6": 3200,
+          "flags": "0x0",
+          "color": "0x340",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6d490",
+          "source": "0x14a",
+          "direct_frame": true,
+          "x_26_6": -6384,
+          "y_26_6": 0,
+          "z_26_6": 2786,
+          "flags": "0x4000",
+          "color": "0x280",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6d480",
+          "source": "0x149",
+          "direct_frame": true,
+          "x_26_6": -4832,
+          "y_26_6": 0,
+          "z_26_6": 3096,
+          "flags": "0x4000",
+          "color": "0x280",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6d490",
+          "source": "0x14a",
+          "direct_frame": true,
+          "x_26_6": 512,
+          "y_26_6": 0,
+          "z_26_6": 2947,
+          "flags": "0x0",
+          "color": "0x280",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6d480",
+          "source": "0x149",
+          "direct_frame": true,
+          "x_26_6": 11520,
+          "y_26_6": 0,
+          "z_26_6": 2541,
+          "flags": "0x4000",
+          "color": "0x280",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6d480",
+          "source": "0x149",
+          "direct_frame": true,
+          "x_26_6": 7072,
+          "y_26_6": 0,
+          "z_26_6": 3051,
+          "flags": "0x0",
+          "color": "0x280",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        }
+      ],
+      "reference_pixels": [
+        {
+          "x": 168,
+          "y": 100,
+          "rgb": [
+            148,
+            148,
+            139
+          ],
+          "argb": "ff94948b"
+        },
+        {
+          "x": 168,
+          "y": 230,
+          "rgb": [
+            74,
+            49,
+            16
+          ],
+          "argb": "ff4a3110"
+        }
+      ],
+      "capture": "review/arcade/after/stage-6.png"
+    },
+    {
+      "index": 7,
+      "name": "DINOSAUR GRAVEYARD",
+      "sky_maps": [
+        "0x1e0436",
+        "0x1e0436"
+      ],
+      "floor_maps": [
+        "0x1d5ada",
+        "0x1d5fdc"
+      ],
+      "sky_bank": 5,
+      "floor_bank": 0,
+      "horizon": 164,
+      "palette_cycles": [],
+      "object_count": 17,
+      "objects": [
+        {
+          "descriptor": "0x6c024",
+          "source": "0x2f4",
+          "direct_frame": true,
+          "x_26_6": -10176,
+          "y_26_6": 0,
+          "z_26_6": 3008,
+          "flags": "0x0",
+          "color": "0x240",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6c004",
+          "source": "0x2f3",
+          "direct_frame": true,
+          "x_26_6": 9728,
+          "y_26_6": 0,
+          "z_26_6": 4188,
+          "flags": "0x0",
+          "color": "0x200",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6c044",
+          "source": "0x30f",
+          "direct_frame": true,
+          "x_26_6": -240,
+          "y_26_6": 0,
+          "z_26_6": 4753,
+          "flags": "0x0",
+          "color": "0x280",
+          "scale": 0.5,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6c054",
+          "source": "0x56ece",
+          "direct_frame": false,
+          "x_26_6": -5584,
+          "y_26_6": 0,
+          "z_26_6": 2709,
+          "flags": "0x0",
+          "color": "0x5a0",
+          "scale": 1.0,
+          "frame_ticks": 6,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6c054",
+          "source": "0x56ece",
+          "direct_frame": false,
+          "x_26_6": -16320,
+          "y_26_6": 0,
+          "z_26_6": 2778,
+          "flags": "0x0",
+          "color": "0x5a0",
+          "scale": 1.0,
+          "frame_ticks": 6,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6c084",
+          "source": "0x56efa",
+          "direct_frame": false,
+          "x_26_6": 144,
+          "y_26_6": 0,
+          "z_26_6": 4728,
+          "flags": "0x0",
+          "color": "0x5a0",
+          "scale": 1.0,
+          "frame_ticks": 6,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6c064",
+          "source": "0x56ece",
+          "direct_frame": false,
+          "x_26_6": 6560,
+          "y_26_6": 0,
+          "z_26_6": 4137,
+          "flags": "0x0",
+          "color": "0x5a0",
+          "scale": 0.5,
+          "frame_ticks": 6,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6c064",
+          "source": "0x56ece",
+          "direct_frame": false,
+          "x_26_6": 11568,
+          "y_26_6": 0,
+          "z_26_6": 4134,
+          "flags": "0x0",
+          "color": "0x5a0",
+          "scale": 0.5,
+          "frame_ticks": 6,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6c034",
+          "source": "0x30f",
+          "direct_frame": true,
+          "x_26_6": -6720,
+          "y_26_6": 0,
+          "z_26_6": 4233,
+          "flags": "0x0",
+          "color": "0x280",
+          "scale": 1.0,
+          "frame_ticks": 0,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6c094",
+          "source": "0x56f10",
+          "direct_frame": false,
+          "x_26_6": 1072,
+          "y_26_6": 0,
+          "z_26_6": 2875,
+          "flags": "0x0",
+          "color": "0x5a0",
+          "scale": 1.0,
+          "frame_ticks": 6,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6c094",
+          "source": "0x56f10",
+          "direct_frame": false,
+          "x_26_6": -6544,
+          "y_26_6": 0,
+          "z_26_6": 4295,
+          "flags": "0x0",
+          "color": "0x5a0",
+          "scale": 1.0,
+          "frame_ticks": 6,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6c064",
+          "source": "0x56ece",
+          "direct_frame": false,
+          "x_26_6": -4816,
+          "y_26_6": 0,
+          "z_26_6": 4064,
+          "flags": "0x0",
+          "color": "0x5a0",
+          "scale": 0.5,
+          "frame_ticks": 6,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6c074",
+          "source": "0x56ee4",
+          "direct_frame": false,
+          "x_26_6": 50304,
+          "y_26_6": 0,
+          "z_26_6": 0,
+          "flags": "0x4000",
+          "color": "0x5a0",
+          "scale": 1.0,
+          "frame_ticks": 6,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6c074",
+          "source": "0x56ee4",
+          "direct_frame": false,
+          "x_26_6": 39424,
+          "y_26_6": 0,
+          "z_26_6": -344,
+          "flags": "0x4000",
+          "color": "0x5a0",
+          "scale": 1.0,
+          "frame_ticks": 6,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6c074",
+          "source": "0x56ee4",
+          "direct_frame": false,
+          "x_26_6": 31344,
+          "y_26_6": 0,
+          "z_26_6": -84,
+          "flags": "0x4000",
+          "color": "0x5a0",
+          "scale": 1.0,
+          "frame_ticks": 6,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6c054",
+          "source": "0x56ece",
+          "direct_frame": false,
+          "x_26_6": 12912,
+          "y_26_6": 0,
+          "z_26_6": -284,
+          "flags": "0x0",
+          "color": "0x5a0",
+          "scale": 1.0,
+          "frame_ticks": 6,
+          "linked": false
+        },
+        {
+          "descriptor": "0x6c074",
+          "source": "0x56ee4",
+          "direct_frame": false,
+          "x_26_6": -32304,
+          "y_26_6": 0,
+          "z_26_6": 0,
+          "flags": "0x0",
+          "color": "0x5a0",
+          "scale": 1.0,
+          "frame_ticks": 6,
+          "linked": false
+        }
+      ],
+      "reference_pixels": [
+        {
+          "x": 168,
+          "y": 100,
+          "rgb": [
+            24,
+            32,
+            57
+          ],
+          "argb": "ff182039"
+        },
+        {
+          "x": 168,
+          "y": 230,
+          "rgb": [
+            82,
+            65,
+            57
+          ],
+          "argb": "ff524139"
+        }
+      ],
+      "capture": "review/arcade/after/stage-7.png"
+    }
+  ],
+  "fonts": {
+    "intro_ascii": "0xc510",
+    "intro_tiles": "0xc370",
+    "intro_palette": "0x61442",
+    "intro_cells": [
+      8,
+      16
+    ],
+    "compact_palette": "0x61802",
+    "timer": "RLE 417\u2013426, palette 0x68e3a"
+  },
+  "shadows": {
+    "pointer_table": "0x6b068",
+    "descriptors": "0x6d5e0",
+    "palette": "0x61702"
+  },
+  "contacts": {
+    "hit_script": "0x56e28",
+    "block_script": "0x56e36",
+    "block_palette": "0x61802",
+    "hit_palette": "0x61822 (descriptor 0x6cf50, colour 0x190)",
+    "frame_ticks": 3
+  },
+  "tribes": {
+    "descriptors": "0x6d270 + variant*16",
+    "variants": 6,
+    "team_palettes": "0x63382 + player*0x380 + character*128",
+    "presentation": "Four ambient spectators; idle ROM scripts, 0.75 scale. No eating/worship AI."
+  },
+  "palette_audit": {
+    "format": "RGB555, descending bevel indices retained; transparent index 0 for sprites",
+    "fighters": {
+      "pointer_table": "0x6e38c",
+      "banks_per_character": 4,
+      "colors_per_bank": 64,
+      "sources": [
+        "0x63f02",
+        "0x64302",
+        "0x64902",
+        "0x64b02",
+        "0x64702",
+        "0x64102",
+        "0x64502"
+      ]
+    },
+    "temple": {
+      "setup": "0x1838c",
+      "palette_source": "0x6707a",
+      "background_palettes": [
+        "0x6717a",
+        "0x671fa"
+      ],
+      "podium_palette": "0x6727a",
+      "heads": [
+        {
+          "cell": 0,
+          "character": 0,
+          "object": 788,
+          "palette": "0x673fa"
+        },
+        {
+          "cell": 1,
+          "character": 2,
+          "object": 790,
+          "palette": "0x6747a"
+        },
+        {
+          "cell": 2,
+          "character": 3,
+          "object": 791,
+          "palette": "0x672fa"
+        },
+        {
+          "cell": 3,
+          "character": 1,
+          "object": 789,
+          "palette": "0x6737a"
+        },
+        {
+          "cell": 4,
+          "character": 6,
+          "object": 794,
+          "palette": "0x674fa"
+        },
+        {
+          "cell": 5,
+          "character": 4,
+          "object": 792,
+          "palette": "0x6757a"
+        },
+        {
+          "cell": 6,
+          "character": 5,
+          "object": 793,
+          "palette": "0x675fa"
+        }
+      ],
+      "portrait_pointer_table": "0x676fa",
+      "portrait_palettes": [
+        "0x67716",
+        "0x67796",
+        "0x67816",
+        "0x67896",
+        "0x67916",
+        "0x67996",
+        "0x67a16"
+      ]
+    },
+    "globe": {
+      "setup": "0x36c98",
+      "palette_source": "0x65cfa",
+      "layers": [
+        {
+          "descriptor": "0x74174",
+          "palette": "0x65cfa"
+        },
+        {
+          "descriptor": "0x74184",
+          "palette": "0x65d7a"
+        },
+        {
+          "descriptor": "0x74194",
+          "palette": "0x65dfa"
+        },
+        {
+          "descriptor": "0x741a4",
+          "palette": "0x65e7a"
+        }
+      ]
+    },
+    "hud": {
+      "alpha_setup": "0x29b7a",
+      "alpha_source": "0x613c2",
+      "health_bank": 6,
+      "stun_bank": 7,
+      "organ_descriptor": "0x6d3d0",
+      "organ_palette": "0x61742",
+      "name_setup": "0x351b2",
+      "name_palettes": [
+        "0x64d02",
+        "0x64d82",
+        "0x64e02",
+        "0x64e82",
+        "0x64f02",
+        "0x64f82",
+        "0x65002"
+      ]
+    },
+    "scenery": {
+      "setup": "0x29512",
+      "common_source": "0x61502",
+      "stage_sources": [
+        "0x61902",
+        "0x61d02",
+        "0x62082",
+        "0x62482",
+        "0x62682",
+        "0x62b02",
+        "0x62f02",
+        "0x63202"
+      ],
+      "extra_source": "0x63a82",
+      "playfield_sources": [
+        "0x5fec2",
+        "0x600c2",
+        "0x603c2",
+        "0x605c2",
+        "0x607c2",
+        "0x609c2",
+        "0x60bc2",
+        "0x60dc2"
+      ]
+    },
+    "tribes": {
+      "setup": "0x295ce",
+      "palettes": [
+        [
+          "0x63382",
+          "0x63402",
+          "0x63482",
+          "0x63502",
+          "0x63582",
+          "0x63602",
+          "0x63682"
+        ],
+        [
+          "0x63702",
+          "0x63782",
+          "0x63802",
+          "0x63882",
+          "0x63902",
+          "0x63982",
+          "0x63a02"
+        ]
+      ]
+    },
+    "timer": {
+      "setup": "0x446f8",
+      "palette": "0x68e3a",
+      "presentation": "Port HUD uses the original gold decorative digits; intro face is separate."
+    },
+    "unused_slab": {
+      "object": 826,
+      "palette": "0x61042"
+    },
+    "excluded": "Custom photo palettes, UI focus outlines/pins, transient combat flashes; no ROM palette mapping."
+  },
+  "title": {
+    "primal_frames": [
+      447,
+      460
+    ],
+    "rage_frames": [
+      475,
+      480
+    ],
+    "palette_source": "0x650e2",
+    "palettes": {
+      "plaque": "0x650e2",
+      "primal": "0x65162",
+      "rage": "0x652e2"
+    }
+  }
+}

@@ -21,7 +21,7 @@ import zlib
 from multiprocessing import Pool
 
 W, H = 360, 270
-OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join('creatures', 'gloop', 'photos')
+OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data', 'creatures', 'gloop', 'photos')
 
 # --- vector helpers --------------------------------------------------------
 

@@ -1,0 +1,26 @@
+name: Standalone Clayfight
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+jobs:
+  native:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install the standalone platform dependency
+        run: sudo apt-get update && sudo apt-get install -y libsdl2-dev
+      - name: Build and run public-data checks
+        run: make -j4 CFLAGS='-O2 -g -Werror' all test lint
+  ios:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile native UIKit target without private arcade data
+        env:
+          CLAY_ALLOW_MISSING_ROM: '1'
+        run: |
+          xcodebuild -project ios/Clayfight.xcodeproj -scheme Clayfight -configuration Debug \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build/ios CODE_SIGNING_ALLOWED=NO build > build-ios.log 2>&1 || { tail -100 build-ios.log; exit 1; }

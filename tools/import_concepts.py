@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "assets/concepts/clay-kids-actions-2026-10-23"
 NAMES = {"red-boxer": "BOXER", "green-lizard": "LIZARD",
          "purple-cyclops": "CYCLOPS", "yellow-crab": "CRAB"}
-SPRITE_HEIGHT = 184  # 92 DOS world units, two PNG pixels per unit.
+SPRITE_HEIGHT = 184  # 92 logical world units, two PNG pixels per unit.
 
 
 def figure_mask(image):
@@ -118,7 +118,7 @@ def main():
         with Image.open(SOURCE / atlas["image"]) as source:
             crops = load_frames(source, atlas)
         sprites = export_frames(atlas, crops)
-        dest = ROOT / "creatures" / atlas["key"]
+        dest = ROOT / "data/creatures" / atlas["key"]
         photos = dest / "photos"
         photos.mkdir(parents=True, exist_ok=True)
         for frame, sprite in zip(atlas["frames"], sprites):

@@ -93,6 +93,11 @@ static int P_MoveSlot(const parser_t *ps, const char *s)
     static const char *const groups[NUMMOVEGROUPS] = {"stand", "close", "crouch", "jump", "power", "air"};
     static const char *const buttons[4] = {"hq", "hf", "lq", "lf"};
     const char *dot = strchr(s, '.');
+    if (dot && (!strcasecmp(dot + 1, "hp") || !strcasecmp(dot + 1, "lp"))) {
+        for (int g = 0; g < 4; g++)
+            if ((size_t)(dot - s) == strlen(groups[g]) && !strncasecmp(s, groups[g], dot - s))
+                return MP_STAND + g * 2 + (!strcasecmp(dot + 1, "lp"));
+    }
     if (dot) {
         for (int g = 0; g < NUMMOVEGROUPS; g++) {
             if ((size_t)(dot - s) != strlen(groups[g]) || strncasecmp(s, groups[g], dot - s))
@@ -129,7 +134,6 @@ fighterdef_t *P_LoadCreature(const char *path)
         I_Error("can't open %s", path);
     fighterdef_t *def = I_Malloc(sizeof *def);
     def->codeindex = -1;
-    def->aiindex = -1;
     def->facesleft = true;
     def->walkspeed = 1.5f;
     def->backspeed = 1.2f;
@@ -300,12 +304,6 @@ fighterdef_t *P_LoadCreature(const char *path)
         } else if (!strcasecmp(cmd, "portrait")) {
             if (ps.ntok < 2) P_Fail(&ps, "portrait needs a PNG file");
             snprintf(portraitpath, sizeof portraitpath, "%s/%s", dir, ps.tok[1]);
-        } else if (!strcasecmp(cmd, "prage")) {
-            def->codeindex = (int)P_Num(&ps, 1);
-        } else if (!strcasecmp(cmd, "ai")) {
-            def->aiindex = (int)P_Num(&ps, 1);
-            if (def->aiindex < 0 || def->aiindex > 6)
-                P_Fail(&ps, "ai needs a Primal Rage character number, 0..6");
         } else if (!strcasecmp(cmd, "palette")) { // palette N [alt M]
             def->palette = def->altpalette = (int)P_Num(&ps, 1);
             if (ps.ntok > 3 && !strcasecmp(ps.tok[2], "alt"))
@@ -405,7 +403,7 @@ void P_RefreshRoster(const char *dir)
     int n = 0;
     P_FindCreatures(dir, 1, names, &n);
     if (!n)
-        I_Error("No creature files in %s.\nRun 'make creatures' to convert them from PRAGE.EXE.", dir);
+        I_Error("No creature files in %s.\nAdd a photographed creature to the workshop.", dir);
     qsort(names, n, sizeof names[0], P_CompareNames);
     for (int i = 0; i < n; i++) {
         bool loaded = false;
@@ -428,8 +426,59 @@ static int P_RosterOrder(const void *a, const void *b)
     return ix != iy ? ix - iy : strcasecmp(x->name, y->name);
 }
 
+// Original fighters are assembled from the arcade's own script/move tables.
+// The sampled state lists serve previews and silhouette inspection. Combat
+// executes the ROM bytecode directly, including every source frame.
+static void P_ArcadeAnim(fighterdef_t *d,int slot,int row)
+{
+    animinfo_t *a=&d->anims[slot];a->first=d->numstates;a->next=ANIM_STAND;a->wanderfrom=-1;
+    psanim_t vm={0};PS_Start(&vm,PS_RowScript(d->codeindex,row),PS_RowDuration(row));
+    if(slot==ANIM_STAND || slot==ANIM_CROUCH){
+        int n=slot==ANIM_STAND?30:20;
+        for(int i=0;i<n;i++)d->states[d->numstates++]=(state_t){.sprite=d->base,.frame=vm.frameid+i,.tics=3};
+        a->count=n;a->next=ANIM_NONE;a->wanderfrom=0;return;
+    }
+    int previous=-1;
+    for(int tic=0;tic<1200 && a->count<128;tic++){
+        if(vm.step!=previous && vm.sprite){
+            if(d->numstates>=8192)I_Error("Arcade preview state budget exceeded");
+            d->states[d->numstates++]=(state_t){.sprite=vm.sprite,.frame=vm.frame,.hflip=vm.hflip,.tics=MAX(vm.timer,1)};
+            a->count++;previous=vm.step;
+        }
+        if(vm.done)break;
+        PS_Tick(&vm);
+    }
+    if(!a->count)I_Error("Arcade %s row %d has no frame",d->name,row);
+    a->hold=slot==ANIM_DOWN || slot==ANIM_JUMP;
+    if(a->hold)a->next=ANIM_NONE;
+}
+static void P_LoadArcadeRoster(void)
+{
+    static const char *const names[]={"SAURON","BLIZZARD","TALON","VERTIGO","ARMADON","DIABLO","CHAOS"};
+    static const char *const prefixes[]={"REX","KON","TAL","COB","SPI","DIA","HAV"};
+    static const int portraits[]={130,91,141,149,125,113,97};
+    static const int rows[]={0,7,10,1,4,13,38,40,42,43,44,46,52,13,54,58};
+    static const int widths[]={54,49,44,49,59,54,47};
+    for(int c=0;c<7;c++){
+        fighterdef_t *d=I_Malloc(sizeof *d);snprintf(d->name,sizeof d->name,"%s",names[c]);snprintf(d->prefix,sizeof d->prefix,"%s",prefixes[c]);
+        d->codeindex=c;d->portrait=portraits[c];d->label=-1;d->facesleft=true;d->base=W_LoadGra("arcade");
+        d->palette=c*4;d->altpalette=c*4+1;d->width=widths[c];d->walkspeed=c==2?2.47f:c==4?1.6f:1.97f;d->backspeed=d->walkspeed*.75f;d->jumpspeed=10.6f;
+        d->numanims=NUMSTDANIMS+NUMMOVES;d->states=I_Malloc(8192*sizeof *d->states);
+        for(int a=0;a<NUMSTDANIMS;a++){snprintf(d->anims[a].name,sizeof d->anims[a].name,"%s",stdanimnames[a]);P_ArcadeAnim(d,a,rows[a]);}
+        for(int m=0;m<NUMMOVES;m++){
+            psmove_t move;if(!PS_Move(c,m,&move))continue;
+            int a=NUMSTDANIMS+m;snprintf(d->anims[a].name,sizeof d->anims[a].name,"move_%d",m);P_ArcadeAnim(d,a,move.row);
+            d->moves[m]=(movedef_t){.valid=true,.anim=a,.stun=move.stun,.attack={.damage=move.damage,.level=move.hitclass==4 || move.hitclass==5?LOW:HIGH,.push=1.5f+move.strength,.knockdown=move.strength>=3}};
+        }
+        P_FinishFighter(d);char path[64];snprintf(path,sizeof path,"arcade://%s",names[c]);P_RegisterCreature(d,path);
+    }
+}
+
 void P_LoadRoster(const char *dir)
 {
+    if (!PS_Active() && !PS_Init()) I_Error("Arcade script table unavailable");
+    p_scripted=true;
+    if (!numroster) P_LoadArcadeRoster();
     P_RefreshRoster(dir);
     // Preserve original seven-character order, then the clay roster.
     // Paths stay in load order; refresh only uses them as a membership set.

@@ -18,10 +18,8 @@ static void finishmatch(int winner)
     assert(gameaction == ga_matchover); gameaction = ga_nothing;
     C_MatchOver(match.wins[0] >= n);
 }
-int main(int argc, char **argv)
+void CF_FlowChecks(void)
 {
-    myargc = argc; myargv = argv;
-    I_InitGraphics(true); W_Init("primalrage"); V_Init(); P_LoadRoster("creatures");
     options.sound = false;
     assert(numroster >= 12);
     for (int i = 0; i < 7; i++) assert(roster[i]->codeindex == i);
@@ -103,6 +101,14 @@ int main(int argc, char **argv)
     }
     assert(!endurance && gamestate == GS_RESULTS);
     E_Drawer(); press(M_Responder, KEY_ENTER); assert(gamestate == GS_MENU);
-    I_Shutdown(); puts("flow: menus, 7 lands, continues, 7 final rivals, victory, defeat, P2 reset, training, tug of war and endurance passed");
-    return 0;
+ puts("flow: menus, 7 lands, continues, 7 final rivals, victory, defeat, P2 reset, training, tug of war and endurance passed");
 }
+
+
+#ifndef CLAY_COMBINED
+int main(int argc,char **argv) {
+    myargc=argc;myargv=argv;I_InitGraphics(true);W_Init("data/primrage");
+    PS_Init();V_Init();P_LoadRoster("data/creatures");
+    CF_FlowChecks();I_Shutdown();return 0;
+}
+#endif

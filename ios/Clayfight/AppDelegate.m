@@ -2,6 +2,7 @@
 #import <QuartzCore/QuartzCore.h>
 #include <unistd.h>
 #include <string.h>
+void clay_controllers_init(void);
 
 static __weak CFGameController *gameController;
 static BOOL gameSuspended;
@@ -66,8 +67,8 @@ void CFGameFrame(const pixel_t *pixels) {
         if(![fm fileExistsAtPath:destination])[fm copyItemAtPath:[defaults stringByAppendingPathComponent:name] toPath:destination error:nil];
     }
     chdir(root.fileSystemRepresentation);
-    static char *args[7];args[0]="clayfight";args[1]="-data";args[2]=strdup([bundled stringByAppendingPathComponent:@"primalrage"].fileSystemRepresentation);args[3]="-creatures";args[4]=strdup(CFCreaturesPath().fileSystemRepresentation);args[5]="-warp";args[6]="menu";
-    @try { D_InitGame(7,args); }
+    static char *args[7];args[0]="clayfight";args[1]="-data";args[2]=strdup([bundled stringByAppendingPathComponent:@"primrage"].fileSystemRepresentation);args[3]="-creatures";args[4]=strdup(CFCreaturesPath().fileSystemRepresentation);args[5]="-warp";args[6]="menu";
+    @try { D_InitGame(7,args);clay_controllers_init(); }
     @catch(NSException *e){UIAlertController *a=[UIAlertController alertControllerWithTitle:@"Не удалось загрузить игру" message:e.reason preferredStyle:UIAlertControllerStyleAlert];[a addAction:[UIAlertAction actionWithTitle:@"Закрыть" style:UIAlertActionStyleCancel handler:nil]];[self presentViewController:a animated:YES completion:nil];self.initialized=NO;}
 }
 - (void)viewDidLayoutSubviews {

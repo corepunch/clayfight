@@ -78,7 +78,7 @@ bool G_Responder(const event_t *ev)
 // G_BuildTiccmd: snapshot the controls for this tic.
 static void G_BuildTiccmd(int player, ticcmd_t *cmd)
 {
-    *cmd = (ticcmd_t){.buttons = held[player]};
+    cmd->buttons = held[player];
 }
 
 void G_InitNew(fighterdef_t *p1, fighterdef_t *p2, const bool cpu[2], stage_t *stage)

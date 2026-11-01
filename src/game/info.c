@@ -124,7 +124,7 @@ void P_FinishFighter(fighterdef_t *def)
     }
     for (int m = 0; m < NUMMOVES; m++) {
         const movedef_t *mv = &def->moves[m];
-        if (mv->valid && (m / 4 == MG_JUMP || m / 4 == MG_AIR))
+        if (mv->valid && P_MoveIsAir(m))
             def->anims[mv->anim].kind = K_AIR;
     }
 
