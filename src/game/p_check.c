@@ -11,7 +11,7 @@ int P_CheckAnims(void)
         if(!ok){I_Log("FAIL arcade %s animation %d did not start",roster[c]->name,slot);failed++;continue;}
         for(int tic=0;tic<400;tic++){
             patch_t *p=P_StatePatch(f.state);
-            if(!p || !p->hasbox || p->maxval>f.pal->count || !isfinite(f.x)){
+            if(f.anim.failed || !p || !p->hasbox || p->maxval>f.pal->count || !isfinite(f.x)){
                 I_Log("FAIL arcade %s animation %d tic %d object %d",roster[c]->name,slot,tic,f.state->frame);failed++;break;
             }
             P_AnimTick(&f);

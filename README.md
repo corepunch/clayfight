@@ -1,7 +1,9 @@
 # Clayfight
 
-A standalone C fighting game where children photograph clay creatures and make
-them fight. Desktop uses SDL2; iPhone/iPad use UIKit, AVFoundation and native
+Clayfight is a **Primal Rage arcade reimplementation** in standalone C, extended
+with custom clay fighters made from photographs.
+
+Desktop uses SDL2; iPhone/iPad use UIKit, AVFoundation and native
 touch/GameController input. The game has no dependency on Nile Archive or Lua.
 
 The current runtime reads the supported Primal Rage 2.3 December 1994 arcade
@@ -9,6 +11,20 @@ chips directly: original RLE sprites, palettes, animation bytecode, normal and
 power moves, stages, HUD, contact artwork and CAGE sounds. Custom clay fighters
 use local photos and text definitions. The framebuffer is 672×480, twice the
 arcade's 336×240 view.
+
+## Screenshots
+
+Captured directly from the native 672×480 framebuffer.
+
+| Fighter select | Sauron vs. Talon — The Cove |
+| --- | --- |
+| ![Primal Rage fighter select with Sauron and Talon](https://raw.githubusercontent.com/corepunch/clayfight/56b88b9242e1a8bcd1f9b40c390a49451290bfa1/docs/screenshots/2026-11-01/fighter-select.png) | ![Sauron fighting Talon in The Cove](https://raw.githubusercontent.com/corepunch/clayfight/56b88b9242e1a8bcd1f9b40c390a49451290bfa1/docs/screenshots/2026-11-01/sauron-talon-cove.png) |
+| **Blizzard vs. Chaos — The Inferno** | **Vertigo vs. Armadon — The Tomb** |
+| ![Blizzard and Chaos fighting beneath an erupting volcano](https://raw.githubusercontent.com/corepunch/clayfight/56b88b9242e1a8bcd1f9b40c390a49451290bfa1/docs/screenshots/2026-11-01/blizzard-chaos-inferno.png) | ![Vertigo fighting Armadon in The Tomb](https://raw.githubusercontent.com/corepunch/clayfight/56b88b9242e1a8bcd1f9b40c390a49451290bfa1/docs/screenshots/2026-11-01/vertigo-armadon-tomb.png) |
+| **Diablo vs. Sauron — The Ruins** | **Custom clay fighters — The Hollows** |
+| ![Diablo fighting Sauron in The Ruins](https://raw.githubusercontent.com/corepunch/clayfight/56b88b9242e1a8bcd1f9b40c390a49451290bfa1/docs/screenshots/2026-11-01/diablo-sauron-ruins.png) | ![Custom clay Boxer fighting Lizard in The Hollows](https://raw.githubusercontent.com/corepunch/clayfight/56b88b9242e1a8bcd1f9b40c390a49451290bfa1/docs/screenshots/2026-11-01/boxer-lizard-hollows.png) |
+
+[Full-resolution captures and reproduction details](https://github.com/corepunch/clayfight/tree/56b88b9242e1a8bcd1f9b40c390a49451290bfa1/docs/screenshots/2026-11-01).
 
 ## Build and play
 
@@ -70,6 +86,10 @@ make lint                       # source paths, project references, Python synta
 `--captures <existing-directory>`. One invocation runs every selected combat
 case. The retail case validates 280 animation/move slots, all original power
 choices, real guard collisions, seven CPU styles and photo dizzy fallbacks.
+The `animation_` cases cover bounded walking, all 280 ROM script entries,
+1,430 jump/attack/landing/recovery sequences across the loaded roster and every
+available photo animation in both facings. See the
+[animation audit](docs/primal-rage-scripts.md#jump-attack-and-recovery-audit).
 
 ## Migration
 

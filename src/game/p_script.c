@@ -68,12 +68,19 @@ bool PS_Init(void)
 
 uint32_t PS_RowScript(int character, int row)
 {
+    if (row == ROW_GETUP || row == ROW_LYING) {
+        // Native 0x1960c's ordinary recovery switch (not the alternate
+        // death/dizzy branch). Each handler loads a PEA script operand.
+        uint32_t handler = 0x19782 + X_S16(0x19782 + character * 2);
+        return X_U32(handler + 8);
+    }
     int arcade_row = row + (row >= 12) + (row >= 54);
     return X_U32(SCRIPTTAB + 4 * (arcade_row * 10 + character));
 }
 
 float PS_RowDuration(int row)
 {
+    if (row == ROW_GETUP || row == ROW_LYING) return 3;
     return row == 0 || row == 1 ? 3 : row >= 0 && row < PS_NUMROWS ? rowduration[row] : 2;
 }
 
@@ -197,6 +204,8 @@ static const struct {
     {0x1ae76, false, N_Crouch}, // crouch bookkeeping
     {0x1a45c, true, NULL}, // end of walk step
     {0x1960c, true, NULL}, // knocked down: game code takes over
+    {0x195d6, true, NULL}, // recovery complete: return to neutral
+    {0x2de96, false, NULL}, // creates an auxiliary effect object
 };
 
 static bool N_Call(psanim_t *a, uint32_t addr, int arg)
@@ -212,6 +221,7 @@ static bool N_Call(psanim_t *a, uint32_t addr, int arg)
             return natives[i].ends;
         }
     }
+    a->failed = true;
     for (int i = 0; i < numreported; i++)
         if (reported[i] == addr)
             return false;
@@ -244,7 +254,12 @@ static void Show(psanim_t *a, int word)
 {
     a->frameid = word & 0x7fff;
     a->hflip = word & 0x8000;
-    PS_FrameInfo(a->frameid, &a->sprite, &a->frame, &a->ax, &a->ay);
+    if (!PS_FrameInfo(a->frameid, &a->sprite, &a->frame, &a->ax, &a->ay)) {
+        a->sprite = NULL;
+        a->frame = -1;
+        a->failed = a->done = true;
+        return;
+    }
     a->step++;
     a->timer += a->timing ? X_U8(a->timing + a->vars[0]) : a->duration;
 }
@@ -415,13 +430,13 @@ static runresult_t Run(psanim_t *a)
             break; // attributes, velocities, sounds: owned by our play code for now
         default:
             I_Log("PS: unknown opcode %#x at %#x", opc, ip);
-            a->done = true;
+            a->failed = a->done = true;
             return RUN_STOPPED;
         }
         a->ip = next;
     }
     I_Log("PS: runaway script at %#x", a->ip);
-    a->done = true;
+    a->failed = a->done = true;
     return RUN_STOPPED;
 }
 
@@ -437,6 +452,29 @@ void PS_Start(psanim_t *a, uint32_t script, float duration)
     PS_StartScenery(a,script,duration,0);
 }
 
+void PS_StartRow(psanim_t *a, int character, int row, float duration)
+{
+    if (row == ROW_LYING) {
+        // Keep the native recovery's first, floor-registered pose while the
+        // simulation's down timer runs; core row 52 is another hit sequence.
+        PS_Start(a, PS_RowScript(character, ROW_GETUP), duration);
+        a->movex = 0;
+        a->done = true;
+        return;
+    }
+    if (row != ROW_WALKF && row != ROW_WALKB) {
+        PS_Start(a, PS_RowScript(character, row), duration);
+        return;
+    }
+    // Native 0x1a45c/0x1a712 indexes rows 7/10 as frame tables, wrapping
+    // at the shared character count. The following words belong to other
+    // animations (Talon's backward table runs straight into jump bytecode).
+    *a = (psanim_t){.framecycle = PS_RowScript(character, row),
+        .cyclelen = X_U16(0x6affe + character * 2),
+        .duration = duration, .step = -1, .linkstun = a->linkstun};
+    Show(a, X_U16(a->framecycle));
+}
+
 bool PS_Tick(psanim_t *a)
 {
     a->movex = a->movey = 0;
@@ -445,8 +483,12 @@ bool PS_Tick(psanim_t *a)
         return false;
     int step = a->step;
     a->timer -= 1;
-    for (int guard = 0; a->timer <= PS_EPSILON && !a->done && guard < 16; guard++)
-        if (Run(a) == RUN_PAUSED)
+    for (int guard = 0; a->timer <= PS_EPSILON && !a->done && guard < 16; guard++) {
+        if (a->framecycle) {
+            a->vars[0] = (a->vars[0] + 1) % a->cyclelen;
+            Show(a, X_U16(a->framecycle + 2 * a->vars[0]));
+        } else if (Run(a) == RUN_PAUSED)
             break;
+    }
     return a->step != step;
 }

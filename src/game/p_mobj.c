@@ -46,18 +46,21 @@ bool P_IsAirborne(const fighter_t *f)
 
 int P_SpriteLift(const fighter_t *f)
 {
-    // Ground poses have foot pivots; the original air poses have torso pivots
-    // instead, and the scripts raise the object by the difference with MOVE_Y.
-    // Our z is always measured at the feet. A pose's lowest pixel must not set
-    // this, or a swinging tail would move the whole body; it only stops a pose
-    // sinking further into the floor than standing art does near touchdown.
-    if (f->state->kind != K_AIR)
-        return 0;
+    // z is measured at the feet. ROM MOVE_Y registers drawing pivots for
+    // jumps, attacks and reactions, including signed grounded adjustments.
+    // The lowest pixel only guards airborne touchdown; grounding every pose
+    // by its bottom would move the body whenever a tail swings down.
     const patch_t *p = P_StatePatch(f->state);
     if (p_scripted && f->def->codeindex >= 0) {
-        int floorlift = p && p->hasbox ? p->by1 - FOOT_DEPTH - (int)lroundf(f->z) : 0;
-        return MAX(0, MAX((int)lroundf(f->airlift), floorlift));
+        int lift = (int)lroundf(f->spritelift);
+        if (f->state->kind == K_AIR || (f->state->kind == K_DOWN && P_IsAirborne(f))) {
+            int floorlift = p && p->hasbox ? p->by1 - FOOT_DEPTH - (int)lroundf(f->z) : 0;
+            lift = MAX(0, MAX(lift, floorlift));
+        }
+        return lift;
     }
+    if (f->state->kind != K_AIR)
+        return 0;
     return p && p->hasbox ? MAX(0, p->by1 + 1) : 0;
 }
 
@@ -124,6 +127,7 @@ bool P_SetAnim(fighter_t *f, animnum_t anim)
     f->wandertimer = 0;
     f->downtimer = anim == ANIM_DOWN ? DOWN_TICS : 0;
     P_EnterState(f, a->first, false);
+    f->animfresh = true;
     return true;
 }
 
@@ -172,7 +176,8 @@ static void P_AnimateCreature(fighter_t *f)
             P_EnterState(f, next, true);
             continue;
         }
-        if (st->kind == K_AIR && P_IsAirborne(f)) { // air move over: hang on until landing
+        if (P_IsAirborne(f) && ((st->kind == K_AIR && f->animnext != ANIM_JUMP) ||
+                              P_InAnim(f, ANIM_FALL))) {
             f->tics = 1;
             break;
         }
@@ -215,7 +220,7 @@ static const signed char scriptrows[NUMSTDANIMS] = {
     [ANIM_CROUCH] = ROW_CROUCH, [ANIM_JUMP] = ROW_JUMP, [ANIM_LAND] = ROW_LAND,
     [ANIM_BLOCK] = ROW_BLOCK, [ANIM_CROUCHBLOCK] = ROW_CROUCHBLOCK, [ANIM_HIT] = ROW_HIT,
     [ANIM_CROUCHHIT] = ROW_CROUCHHIT, [ANIM_HITHARD] = ROW_HITHARD, [ANIM_FALL] = ROW_FALL,
-    [ANIM_DOWN] = ROW_LYING, [ANIM_GETUP] = ROW_LAND, [ANIM_DIZZY] = ROW_DIZZY, [ANIM_WIN] = ROW_WIN,
+    [ANIM_DOWN] = ROW_LYING, [ANIM_GETUP] = ROW_GETUP, [ANIM_DIZZY] = ROW_DIZZY, [ANIM_WIN] = ROW_WIN,
 };
 
 static void P_ScriptFrame(fighter_t *f)
@@ -229,8 +234,8 @@ static void P_ScriptFrame(fighter_t *f)
 static void P_ScriptMotion(fighter_t *f)
 {
     if (f->anim.movex && f->pstate.kind != K_AIR)
-        f->x += f->anim.movex * ARCADE_XSCALE * f->facing; // positive = forward
-    f->airlift = f->pstate.kind == K_AIR ? f->airlift + f->anim.movey : 0;
+        f->x += f->anim.movex * ARCADE_XSCALE * f->facing * (f->def->facesleft ? -1 : 1);
+    f->spritelift += f->anim.movey;
     if (f->anim.flipfacing)
         f->facing = -f->facing;
 }
@@ -253,8 +258,9 @@ static void P_ScriptStart(fighter_t *f, int row, float duration)
     f->attackhit = false;
     f->attacklive = false;
     f->state = &f->pstate;
+    f->animfresh = true;
     f->anim.linkstun = f->linkstun;
-    PS_Start(&f->anim, PS_RowScript(f->def->codeindex, row), duration);
+    PS_StartRow(&f->anim, f->def->codeindex, row, duration);
     P_ScriptFrame(f);
     P_ScriptMotion(f);
 }
@@ -264,7 +270,9 @@ static bool P_ScriptAnim(fighter_t *f, animnum_t anim)
     if (anim < 0 || anim >= NUMSTDANIMS)
         return false;
     // Takeoff plays the whole jump; ROW_JUMP is the descent an air move resumes.
-    int row = anim == ANIM_JUMP && f->airlift <= 0 ? ROW_JUMPMOVE : scriptrows[anim];
+    bool resume = anim == ANIM_JUMP && f->state && f->state->kind == K_AIR && f->spritelift > 0;
+    int row = anim == ANIM_JUMP && !resume ? ROW_JUMPMOVE : scriptrows[anim];
+    f->spritelift = resume ? f->def->airpivot : 0;
     f->move = -1;
     f->smove.valid = false;
     f->attack = NULL;
@@ -287,9 +295,10 @@ static bool P_ScriptMove(fighter_t *f, int slot, animnum_t next)
         .knockdown = f->smove.strength >= 3,
     };
     bool air = P_MoveIsAir(slot);
+    f->spritelift = air ? f->def->airpivot : 0;
     f->pstate = (state_t){.anim = air ? ANIM_AIRMOVE : ANIM_MOVE, .kind = air ? K_AIR : K_ATTACK};
     f->animnext = next;
-    f->scripthold = air;
+    f->scripthold = false;
     P_ScriptStart(f, f->smove.row, 2); // every move starts at 2 tics per frame
     f->move = slot;
     f->attack = &f->smoveattack;
@@ -320,6 +329,7 @@ static void P_ScriptThink(fighter_t *f)
         if (--f->downtimer <= 0 && !f->dead)
             P_SetAnim(f, ANIM_GETUP);
     } else if (f->anim.done && !f->scripthold &&
+               !(P_InAnim(f, ANIM_FALL) && P_IsAirborne(f)) &&
                !(f->state->kind == K_HIT && (f->stun > 0 || f->dizzy))) {
         animnum_t n = f->animnext != ANIM_NONE ? f->animnext : (animnum_t)f->pstate.anim;
         P_SetAnim(f, n < NUMSTDANIMS ? n : ANIM_STAND);
@@ -332,6 +342,7 @@ void P_AnimTick(fighter_t *f)
         P_ScriptThink(f);
     else
         P_AnimateCreature(f);
+    f->animfresh = false;
 }
 
 // --- physics --------------------------------------------------------------------
@@ -345,19 +356,25 @@ static void P_Landed(fighter_t *f)
             P_SetAnim(f, ANIM_DOWN);
     } else if (f->state->kind == K_AIR) {
         f->momx = 0;
-        P_SetAnim(f, ANIM_LAND);
+        if (!P_SetAnim(f, ANIM_LAND))
+            P_SetAnim(f, ANIM_STAND);
     }
 }
 
 void P_FighterThinker(fighter_t *f)
 {
-    P_AnimTick(f);
+    // A controller-entered frame must be rendered once before its timer
+    // advances. In particular, one-tick takeoff poses must not disappear.
+    if (!f->animfresh)
+        P_AnimTick(f);
+    f->animfresh = false;
     if (f->dead && P_InAnim(f, ANIM_GETUP)) // KO'd: stay down
         P_SetAnim(f, ANIM_DOWN);
 
     // move
-    f->x += f->momx;
-    if (P_IsAirborne(f)) {
+    bool windup = p_scripted && f->def->codeindex >= 0 && P_InAnim(f, ANIM_JUMP) && f->spritelift <= 0;
+    if (!windup) f->x += f->momx;
+    if (P_IsAirborne(f) && !windup) {
         f->z += f->momz;
         f->momz -= GRAVITY;
         if (f->z <= 0) {
@@ -365,7 +382,7 @@ void P_FighterThinker(fighter_t *f)
             f->momz = 0;
             P_Landed(f);
         }
-    } else if (f->state->kind != K_FREE) {
+    } else if (!P_IsAirborne(f) && f->state->kind != K_FREE) {
         f->momx *= 0.82f; // friction while not walking
         if (fabsf(f->momx) < 0.05f)
             f->momx = 0;
@@ -397,4 +414,6 @@ void P_FighterThinker(fighter_t *f)
         f->flash--;
     if (f->shownhealth > f->health)
         f->shownhealth = MAX((float)f->health, f->shownhealth - 0.5f);
+    // Landing/KO transitions entered during this update are already visible.
+    f->animfresh = false;
 }

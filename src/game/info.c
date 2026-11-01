@@ -21,7 +21,7 @@ static const struct {
     [ANIM_WALKB] = {K_FREE, ANIM_NONE},
     [ANIM_CROUCH] = {K_FREE, ANIM_NONE},
     [ANIM_JUMP] = {K_AIR, ANIM_NONE},
-    [ANIM_LAND] = {K_FREE, ANIM_STAND},
+    [ANIM_LAND] = {K_SCRIPT, ANIM_STAND},
     [ANIM_BLOCK] = {K_HIT, ANIM_NONE},
     [ANIM_CROUCHBLOCK] = {K_HIT, ANIM_NONE},
     [ANIM_HIT] = {K_HIT, ANIM_STAND},

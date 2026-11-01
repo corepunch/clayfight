@@ -171,6 +171,7 @@ typedef struct {
     int palette, altpalette; // sub-palettes of the base art file
     bool facesleft; // which way the art faces
     float walkspeed, backspeed, jumpspeed;
+    float airpivot; // arcade torso pivot above feet, recovered from takeoff MOVE_Y
     int width; // body width for pushing
     gra_t *base;
     state_t *states;
@@ -241,8 +242,8 @@ enum {
     ROW_CROUCHHIT = 43,
     ROW_HITHARD = 44,
     ROW_FALL = 46,
-    ROW_LYING = 52,
-    ROW_GETUP = 53,
+    ROW_LYING = PS_NUMROWS + 1, // held floor pose from native recovery
+    ROW_GETUP = PS_NUMROWS, // native recovery dispatcher, outside the core table
     ROW_DIZZY = 54,
     ROW_WIN = 58,
 };
@@ -254,12 +255,14 @@ typedef struct {
     float timer, duration;
     uint32_t timing; // per-frame tick table (indexed by v52), 0 = off
     uint32_t table; // MOVE_X/MOVE_Y data table
+    uint32_t framecycle; // native-controlled frame table, not executable bytecode
     int vars[PS_NUMVARS]; // v52 v53 v54 v55 slot v58
     int loopcount;
     int step; // frames advanced since the start (attack boxes key on it)
     int cyclelen; // range of the breathing index (v52)
     int breathtimer;
     bool done;
+    bool failed; // invalid frame, unsupported instruction/native or runaway
     // what to show
     int frameid;
     bool hflip;
@@ -295,6 +298,7 @@ bool PS_Move(int character, int id, psmove_t *out);
 bool PS_FrameInfo(int frameid, gra_t **sprite, int *frame, int *ax, int *ay);
 
 void PS_Start(psanim_t *a, uint32_t script, float duration);
+void PS_StartRow(psanim_t *a, int character, int row, float duration);
 void PS_StartScenery(psanim_t *a, uint32_t script, float duration, uint32_t seed);
 // Advance one tic. Returns true when a new frame came up (a->step grew).
 bool PS_Tick(psanim_t *a);
@@ -322,9 +326,10 @@ typedef struct fighter_s {
     const palette_t *pal;
     float x, z; // z: height above the floor
     float momx, momz;
-    float airlift; // ROM MOVE_Y since takeoff: the air pivot's height above z
+    float spritelift; // signed ROM drawing-pivot offset above simulated feet
     int facing; // +1 right, -1 left
     const state_t *state;
+    bool animfresh; // controller entered this animation before the fighter update
     float tics; // left on the current frame
     int health;
     float shownhealth; // HUD drains towards health
@@ -400,7 +405,7 @@ bool P_SetAnim(fighter_t *f, animnum_t anim);
 bool P_StartMove(fighter_t *f, int slot, animnum_t next);
 bool P_InAnim(const fighter_t *f, animnum_t anim);
 bool P_IsAirborne(const fighter_t *f);
-int P_SpriteLift(const fighter_t *f); // height of an air pose's pivot above the simulated feet
+int P_SpriteLift(const fighter_t *f); // signed drawing-pivot offset above the simulated feet
 void P_FighterThinker(fighter_t *f);
 void P_AnimTick(fighter_t *f); // advance the animation only
 

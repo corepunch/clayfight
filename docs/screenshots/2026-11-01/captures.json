@@ -1,0 +1,66 @@
+{
+  "date": "2026-11-01",
+  "framebuffer": [
+    672,
+    480
+  ],
+  "source": "Local working tree including the shared animation audit fixes",
+  "baseline_commit": "b2f7b1fe7b2c082009c3fcf2efcd69b61e0f47d0",
+  "command": "build/test-combat --retail readme_screenshots --captures build/readme-captures",
+  "captures": [
+    {
+      "name": "fighter-select",
+      "path": "docs/screenshots/2026-11-01/fighter-select.png",
+      "caption": "Fighter select: Sauron and Talon",
+      "source_bmp": "fighter-select.bmp",
+      "simulation_tick": 120,
+      "bytes": 129954,
+      "sha256": "c65e73857cb4b010f327a2ca14241f5690075b54423a9e9b102fe31395a5e971"
+    },
+    {
+      "name": "sauron-talon-cove",
+      "path": "docs/screenshots/2026-11-01/sauron-talon-cove.png",
+      "caption": "Sauron vs. Talon — The Cove",
+      "source_bmp": "sauron-talon-cove-200.bmp",
+      "simulation_tick": 201,
+      "bytes": 103888,
+      "sha256": "6df71c365e74c99fc19399f42e5ff36c488d90e23b4e4003a84064daedf93cb8"
+    },
+    {
+      "name": "blizzard-chaos-inferno",
+      "path": "docs/screenshots/2026-11-01/blizzard-chaos-inferno.png",
+      "caption": "Blizzard vs. Chaos — The Inferno",
+      "source_bmp": "blizzard-chaos-inferno-260.bmp",
+      "simulation_tick": 261,
+      "bytes": 95879,
+      "sha256": "0219a3b74f18977a4209b0641c73737ce79bafea5eaa66a478b1d6c47640607f"
+    },
+    {
+      "name": "vertigo-armadon-tomb",
+      "path": "docs/screenshots/2026-11-01/vertigo-armadon-tomb.png",
+      "caption": "Vertigo vs. Armadon — The Tomb",
+      "source_bmp": "vertigo-armadon-tomb-140.bmp",
+      "simulation_tick": 141,
+      "bytes": 125242,
+      "sha256": "b50b064b1bb64ee5d161fa38543654cd66b13bcb306dc0d580b6c5389bae529e"
+    },
+    {
+      "name": "diablo-sauron-ruins",
+      "path": "docs/screenshots/2026-11-01/diablo-sauron-ruins.png",
+      "caption": "Diablo vs. Sauron — The Ruins",
+      "source_bmp": "diablo-sauron-ruins-260.bmp",
+      "simulation_tick": 261,
+      "bytes": 124644,
+      "sha256": "5f17a44b06500db5854e3575f2a03d4aba78d82a8c39e7a5102a0c96a2c18e63"
+    },
+    {
+      "name": "boxer-lizard-hollows",
+      "path": "docs/screenshots/2026-11-01/boxer-lizard-hollows.png",
+      "caption": "Boxer vs. Lizard — The Hollows",
+      "source_bmp": "boxer-lizard-hollows-140.bmp",
+      "simulation_tick": 141,
+      "bytes": 130728,
+      "sha256": "b9e443ea351b62307b00379935bc1403dc86f833bb68716eec4af76de4a05dba"
+    }
+  ]
+}

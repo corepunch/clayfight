@@ -432,7 +432,8 @@ static int P_RosterOrder(const void *a, const void *b)
 static void P_ArcadeAnim(fighterdef_t *d,int slot,int row)
 {
     animinfo_t *a=&d->anims[slot];a->first=d->numstates;a->next=ANIM_STAND;a->wanderfrom=-1;
-    psanim_t vm={0};PS_Start(&vm,PS_RowScript(d->codeindex,row),PS_RowDuration(row));
+    psanim_t vm={0};PS_StartRow(&vm,d->codeindex,row,PS_RowDuration(row));
+    if(vm.framecycle){a->next=ANIM_NONE;a->loop=true;}
     if(slot==ANIM_STAND || slot==ANIM_CROUCH){
         int n=slot==ANIM_STAND?30:20;
         for(int i=0;i<n;i++)d->states[d->numstates++]=(state_t){.sprite=d->base,.frame=vm.frameid+i,.tics=3};
@@ -440,10 +441,12 @@ static void P_ArcadeAnim(fighterdef_t *d,int slot,int row)
     }
     int previous=-1;
     for(int tic=0;tic<1200 && a->count<128;tic++){
+        if(slot==ANIM_JUMP && !d->airpivot && vm.movey>0)d->airpivot=vm.movey;
         if(vm.step!=previous && vm.sprite){
             if(d->numstates>=8192)I_Error("Arcade preview state budget exceeded");
             d->states[d->numstates++]=(state_t){.sprite=vm.sprite,.frame=vm.frame,.hflip=vm.hflip,.tics=MAX(vm.timer,1)};
             a->count++;previous=vm.step;
+            if(vm.framecycle && a->count==vm.cyclelen)break;
         }
         if(vm.done)break;
         PS_Tick(&vm);
@@ -457,7 +460,7 @@ static void P_LoadArcadeRoster(void)
     static const char *const names[]={"SAURON","BLIZZARD","TALON","VERTIGO","ARMADON","DIABLO","CHAOS"};
     static const char *const prefixes[]={"REX","KON","TAL","COB","SPI","DIA","HAV"};
     static const int portraits[]={130,91,141,149,125,113,97};
-    static const int rows[]={0,7,10,1,4,13,38,40,42,43,44,46,52,13,54,58};
+    static const int rows[]={0,7,10,1,ROW_JUMPMOVE,13,38,40,42,43,44,46,ROW_LYING,ROW_GETUP,54,58};
     static const int widths[]={54,49,44,49,59,54,47};
     for(int c=0;c<7;c++){
         fighterdef_t *d=I_Malloc(sizeof *d);snprintf(d->name,sizeof d->name,"%s",names[c]);snprintf(d->prefix,sizeof d->prefix,"%s",prefixes[c]);
